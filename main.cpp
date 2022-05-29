@@ -42,11 +42,11 @@ struct phrase
 
     static phrase min_value()
     {
-        return phrase('0');
+        return phrase();
     }
-    static my_type max_value()
+    static phrase max_value()
     {
-        return phrase('1');
+        return phrase();
     }
 };
 
