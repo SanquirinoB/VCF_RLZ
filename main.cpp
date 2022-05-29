@@ -49,7 +49,7 @@ struct phrase
     }
     static my_type max_value()
     {
-        return phrase('10');
+        return phrase('1');
     }
 };
 
