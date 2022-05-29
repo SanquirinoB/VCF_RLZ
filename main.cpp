@@ -22,6 +22,37 @@
 #include <stxxl/stable_ksort>
 #include <stxxl/vector>
 
+struct phrase
+{
+    
+struct phrase
+{
+    typedef unsigned char three_digits; // 1 byte
+    typedef unsigned short four_digits; // 2 byte
+    typedef unsigned ten_digits; // 4 bytes
+
+    // Optimal aligment
+    four_digits indv;
+    three_digits chrom, alele;
+    ten_digits pos;
+    ten_digits pos_e;
+    char *edit[4], *len[6], *len_e[6];
+
+    phrase() { }
+    phrase(char * line)
+    {
+    }
+
+    static phrase min_value()
+    {
+        return phrase('0');
+    }
+    static my_type max_value()
+    {
+        return phrase('10');
+    }
+};
+
 struct my_type
 {
     typedef unsigned key_type;
@@ -82,7 +113,7 @@ std::ostream& operator << (std::ostream& o, const my_type& obj)
     return o;
 }
 
-int main(int argc, char** argv)
+int mainu(int argc, char** argv)
 {
     if (argc < 3)
     {
@@ -90,9 +121,10 @@ int main(int argc, char** argv)
         std::cout << "       where action is one of generate, sort, ksort, stable_sort, stable_ksort" << std::endl;
         return -1;
     }
-
+    // Definimos el tamano del bloque de memoria
     const stxxl::unsigned_type block_size = sizeof(my_type) * 4096;
 
+    // Si buscamos generar los 
     if (strcmp(argv[1], "generate") == 0) {
         const my_type::key_type num_elements = 1 * 1024 * 1024;
         const stxxl::unsigned_type records_in_block = block_size / sizeof(my_type);
@@ -153,6 +185,11 @@ int main(int argc, char** argv)
     }
 
     return 0;
+}
+
+int main()
+{
+    std::cout << "Tamano de estructura phrase" << sizeof(phrase) << std::endl;
 }
 
 // vim: et:ts=4:sw=4
