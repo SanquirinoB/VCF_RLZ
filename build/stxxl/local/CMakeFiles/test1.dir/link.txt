@@ -1,0 +1,1 @@
+/usr/bin/c++    -W -Wall -W -Wall -pedantic -Wno-long-long -Wextra -ftemplate-depth=1024 -std=c++11 -fopenmp -g    CMakeFiles/test1.dir/test1.cpp.o  -o test1 -rdynamic ../lib/libstxxl_debug.a -lpthread 

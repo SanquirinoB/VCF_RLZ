@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Name: stxxl
+Description: An implementation of the C++ STL interfaces for external (out-of-core) memory.
+URL: http://stxxl.sourceforge.net
+Version: 1.4.99
+Cflags: -I${includedir} -fopenmp
+Libs: -L${libdir} -lstxxl_debug -lpthread
