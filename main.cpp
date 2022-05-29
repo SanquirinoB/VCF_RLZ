@@ -190,6 +190,7 @@ struct phrase
 int main()
 {
     std::cout << "Tamano de estructura phrase" << sizeof(phrase) << std::endl;
+    return 0;
 }
 
 // vim: et:ts=4:sw=4
