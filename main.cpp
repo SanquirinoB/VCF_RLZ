@@ -21,9 +21,6 @@
 #include <stxxl/sort>
 #include <stxxl/stable_ksort>
 #include <stxxl/vector>
-
-struct phrase
-{
     
 struct phrase
 {
