@@ -48,14 +48,14 @@ struct phrase
 
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
-           ten_d v_pos_e, char *v_edit, char *v_len, char *v_len_e) : indv(v_indv),
-                                                                      chrom(v_chrom),
-                                                                      alele(v_alele),
-                                                                      pos(v_pos),
-                                                                      pos_e(v_pos_e),
-                                                                      edit(v_edit),
-                                                                      len(v_len),
-                                                                      len_e(v_len_e) {}
+           ten_d v_pos_e, char *v_edit, char *v_len, char *v_len_e) : m_indv(v_indv),
+                                                                      m_chrom(v_chrom),
+                                                                      m_alele(v_alele),
+                                                                      m_pos(v_pos),
+                                                                      m_pos_e(v_pos_e),
+                                                                      m_edit(v_edit),
+                                                                      m_len(v_len),
+                                                                      m_len_e(v_len_e) {}
 
     static phrase min_value()
     {
