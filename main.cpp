@@ -31,20 +31,20 @@ struct phrase
 {
 
     // Optimal aligment
-    four_d indv;
-    three_d chrom, alele;
-    ten_d pos;
-    ten_d pos_e;
-    char edit[4], len[6], len_e[6];
+    four_d m_indv;
+    three_d m_chrom, m_alele;
+    ten_d m_pos;
+    ten_d m_pos_e;
+    char m_edit[4], m_len[6], m_len_e[6];
 
-    four_d indv() const { return indv; }
-    three_d chrom() const { return chrom; }
-    three_d alele() const { return alele; }
-    ten_d pos() const { return pos; }
-    ten_d pos_e() const { return pos_e; }
-    char[] edit() const { return edit; }
-    char[] len() const { return len; }
-    char[] len_e() const { return len_e; }
+    four_d indv() const { return m_indv; }
+    three_d chrom() const { return m_chrom; }
+    three_d alele() const { return m_alele; }
+    ten_d pos() const { return m_pos; }
+    ten_d pos_e() const { return m_pos_e; }
+    char[] edit() const { return m_edit; }
+    char[] len() const { return m_len; }
+    char[] len_e() const { return m_len_e; }
 
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
