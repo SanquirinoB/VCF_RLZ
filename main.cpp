@@ -21,10 +21,9 @@
 #include <stxxl/sort>
 #include <stxxl/stable_ksort>
 #include <stxxl/vector>
-#include <stdint>
 
 typedef unsigned char three_d; // 1 byte
-typedef uint16_t four_d;       // 2 byte
+typedef stxxl::uint16 four_d;  // 2 byte
 typedef unsigned ten_d;        // 4 bytes
 
 struct phrase
