@@ -1,1 +1,0 @@
-/usr/bin/c++    -W -Wall -fopenmp   CMakeFiles/project.dir/main.cpp.o  -o project -rdynamic stxxl/lib/libstxxl_debug.a -lpthread 
