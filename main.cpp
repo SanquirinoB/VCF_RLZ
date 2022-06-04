@@ -17,9 +17,7 @@
 
 #include <stxxl/io>
 #include <stxxl/mng>
-#include <stxxl/ksort>
 #include <stxxl/sort>
-#include <stxxl/stable_ksort>
 #include <stxxl/vector>
 #include <iostream> 
 
@@ -109,7 +107,7 @@ struct Cmp
 
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
-    o.write((char *) obj, sizeof(phrase));
+    o.write(const_cast<char *> obj, sizeof(phrase));
     return o;
 }
 
@@ -159,24 +157,6 @@ int mainu(int argc, char **argv)
     if (strcmp(argv[1], "sort") == 0)
     {
         stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
-#if 0 // stable_sort is not yet implemented
-    }
-    else if (strcmp(argv[1], "stable_sort") == 0) {
-        stxxl::stable_sort(v.begin(), v.end(), memory_to_use);
-#endif
-    }
-    else if (strcmp(argv[1], "ksort") == 0)
-    {
-        stxxl::ksort(v.begin(), v.end(), memory_to_use);
-    }
-    else if (strcmp(argv[1], "stable_ksort") == 0)
-    {
-        stxxl::stable_ksort(v.begin(), v.end(), memory_to_use);
-    }
-    else
-    {
-        STXXL_MSG("Not implemented: " << argv[1]);
-    }
 
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
