@@ -137,71 +137,49 @@ int mainu(int argc, char **argv)
     // Definimos el tamano del bloque de memoria
     const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
 
-    // Si buscamos generar los
-    if (strcmp(argv[1], "generate") == 0)
-    {
-        const phrase::ten_d num_elements = 1 * 1024 * 1024;
-        const stxxl::unsigned_type records_in_block = block_size / sizeof(phrase);
-        stxxl::syscall_file f(argv[2], stxxl::file::CREAT | stxxl::file::RDWR);
-        phrase *array = (phrase *)stxxl::aligned_alloc<STXXL_BLOCK_ALIGN>(block_size);
-        memset(array, 0, block_size);
-
-        phrase::ten_d cur_key = num_elements;
-        for (unsigned i = 0; i < num_elements / records_in_block; i++)
-        {
-            for (unsigned j = 0; j < records_in_block; j++)
-                array[j].m_key = cur_key--;
-
-            stxxl::request_ptr req = f.awrite((void *)array, stxxl::int64(i) * block_size, block_size);
-            req->wait();
-        }
-        stxxl::aligned_dealloc<STXXL_BLOCK_ALIGN>(array);
-    }
-    else
-    {
+    
 #if STXXL_PARALLEL_MULTIWAY_MERGE
         STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
 #endif
-        stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
-        unsigned memory_to_use = 50 * 1024 * 1024;
-        typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
-        vector_type v(&f);
+    stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
+    unsigned memory_to_use = 50 * 1024 * 1024;
+    typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
+    vector_type v(&f);
 
-        /*
-        STXXL_MSG("Printing...");
-        for(stxxl::int64 i=0; i < v.size(); i++)
-            STXXL_MSG(v[i].key());
-         */
+    /*
+    STXXL_MSG("Printing...");
+    for(stxxl::int64 i=0; i < v.size(); i++)
+        STXXL_MSG(v[i].key());
+        */
 
-        STXXL_MSG("Checking order...");
-        STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+    STXXL_MSG("Checking order...");
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-        STXXL_MSG("Sorting...");
-        if (strcmp(argv[1], "sort") == 0)
-        {
-            stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
+    STXXL_MSG("Sorting...");
+    if (strcmp(argv[1], "sort") == 0)
+    {
+        stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
 #if 0 // stable_sort is not yet implemented
-        }
-        else if (strcmp(argv[1], "stable_sort") == 0) {
-            stxxl::stable_sort(v.begin(), v.end(), memory_to_use);
-#endif
-        }
-        else if (strcmp(argv[1], "ksort") == 0)
-        {
-            stxxl::ksort(v.begin(), v.end(), memory_to_use);
-        }
-        else if (strcmp(argv[1], "stable_ksort") == 0)
-        {
-            stxxl::stable_ksort(v.begin(), v.end(), memory_to_use);
-        }
-        else
-        {
-            STXXL_MSG("Not implemented: " << argv[1]);
-        }
-
-        STXXL_MSG("Checking order...");
-        STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
     }
+    else if (strcmp(argv[1], "stable_sort") == 0) {
+        stxxl::stable_sort(v.begin(), v.end(), memory_to_use);
+#endif
+    }
+    else if (strcmp(argv[1], "ksort") == 0)
+    {
+        stxxl::ksort(v.begin(), v.end(), memory_to_use);
+    }
+    else if (strcmp(argv[1], "stable_ksort") == 0)
+    {
+        stxxl::stable_ksort(v.begin(), v.end(), memory_to_use);
+    }
+    else
+    {
+        STXXL_MSG("Not implemented: " << argv[1]);
+    }
+
+    STXXL_MSG("Checking order...");
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
     return 0;
 }
