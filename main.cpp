@@ -27,28 +27,31 @@ typedef unsigned char three_d; // 1 byte
 typedef stxxl::uint16 four_d;  // 2 byte
 typedef unsigned ten_d;        // 4 bytes
 
+
+/*
+Nota de estado: revisar los errores que tira el hacer make en el proyecto
+*/
 struct phrase
 {
 
     // Optimal aligment
-    four_d m_indv;
+    four_d m_indv, m_edit;
     three_d m_chrom, m_alele;
-    ten_d m_pos;
+    ten_d m_pos, m_pos_e, m_len, m_len_e;
     ten_d m_pos_e;
-    char m_edit[4], m_len[6], m_len_e[6];
 
     four_d indv() const { return m_indv; }
     three_d chrom() const { return m_chrom; }
     three_d alele() const { return m_alele; }
     ten_d pos() const { return m_pos; }
     ten_d pos_e() const { return m_pos_e; }
-    char[] edit() const { return m_edit; }
-    char[] len() const { return m_len; }
-    char[] len_e() const { return m_len_e; }
+    four_d edit() const { return m_edit; }
+    ten_d len() const { return m_len; }
+    ten_d len_e() const { return m_len_e; }
 
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
-           ten_d v_pos_e, char *v_edit, char *v_len, char *v_len_e) : m_indv(v_indv),
+           ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
                                                                       m_chrom(v_chrom),
                                                                       m_alele(v_alele),
                                                                       m_pos(v_pos),
@@ -59,12 +62,12 @@ struct phrase
 
     static phrase min_value()
     {
-        return phrase((four_d)0, (three_d)0, (three_d)0, (ten_d)0, (ten_d)0, '0', '0', '0');
+        return phrase((four_d)0, (three_d)0, (three_d)0, (ten_d)0, (ten_d)0, (four_d)0, (ten_d)0, (ten_d)0);
     }
 
     static phrase max_value()
     {
-        phrase((four_d)9999, (three_d)999, (three_d)99, (ten_d)9999999999, (ten_d)9999999999, '0', '0', '0');
+        phrase((four_d)9999, (three_d)999, (three_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
     }
 };
 
@@ -122,68 +125,6 @@ T digit_cast(char *c_number, three_d n_digits)
     }
 
     return result;
-}
-
-int fphrase_to_sphrase(std::iostream &o, const stxxl::int64 n_phrases)
-{
-    char *line;
-    four_d indv;
-    three_d chrom, alele;
-    ten_d pos;
-    ten_d pos_e;
-    char edit[4], len[6], len_e[6];
-
-    o.read(line, 32);
-    std::cout << "Size of line " << sizeof(*line) << std::endl;
-    // Parse line
-    // Start again
-    o.seekg(ios_base::beg);
-    // Read indv
-    o.read(line, 4);
-    indv = digit_cast<four_d>(line, 4);
-    // Read chrom
-    o.read(line, 3);
-    chrom = digit_cast<three_d>(line, 3);
-    // Read alele
-    o.read(line, 2);
-    alele = digit_cast<three_d>(line, 2);
-    // Read pos
-    o.read(line, 10);
-    pos = digit_cast<ten_d>(line, 10);
-    // Read len
-    o.read(line, 6);
-    len = *line;
-    // Read edit
-    o.read(line, 4);
-    edit = *line;
-
-    // Need to test type of line
-    o.read(line, 3);
-    if (strcmp( &line[2], '\n'))
-    {
-        // If is a short phrase
-        pos_e = 0;
-        len_e = '0';
-    }
-    else
-    {
-        // Roll back and continue
-        o.seekg(o.tellg() - 3);
-        // Read pos_e
-        o.read(line, 10);
-        pos_e = digit_cast<ten_d>(line, 10);
-        // Read len_e
-        o.read(line, 6);
-        len_e = *line;
-    }
-
-    phrase test = {indv, chrom, alele, pos, pos_e, edit, len, len_e};
-
-    std::cout << "Size of line in struct " << sizeof(test) << std::endl;
-
-    o.close();
-
-    return 0;
 }
 
 int mainu(int argc, char **argv)
@@ -268,12 +209,11 @@ int mainu(int argc, char **argv)
 
 int main()
 {
-    iostream *file;
-    file.open("../VCF_files/Tmp/Parsing/test_4.tmprlz", ios::in);
-    // std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
-    // return 0;
+    // iostream *file;
+    // file.open("../VCF_files/Tmp/Parsing/test_4.tmprlz", ios::in);
+    std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
+    return 0;
 
-    return fphrase_to_sphrase(file, 7);
 }
 
 // vim: et:ts=4:sw=4
