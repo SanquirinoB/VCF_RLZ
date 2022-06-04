@@ -108,7 +108,7 @@ struct Cmp
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
     phrase suitable_obj = obj;
-    o.write((char *) suitable_obj, sizeof(phrase));
+    o.write((char *) &suitable_obj, sizeof(phrase));
     return o;
 }
 
@@ -155,9 +155,7 @@ int mainu(int argc, char **argv)
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
     STXXL_MSG("Sorting...");
-    if (strcmp(argv[1], "sort") == 0)
-    {
-        stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
+    stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
 
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
