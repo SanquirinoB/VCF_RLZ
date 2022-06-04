@@ -38,7 +38,6 @@ struct phrase
     four_d m_indv, m_edit;
     three_d m_chrom, m_alele;
     ten_d m_pos, m_pos_e, m_len, m_len_e;
-    ten_d m_pos_e;
 
     four_d indv() const { return m_indv; }
     three_d chrom() const { return m_chrom; }
@@ -110,7 +109,7 @@ struct Cmp
 
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
-    o.write((char *) obj, sizeof(phrase));
+    o.write((char *) *obj, sizeof(phrase));
     return o;
 }
 
