@@ -109,7 +109,7 @@ struct Cmp
 
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
-    o.write((char *) *obj, sizeof(phrase));
+    o.write((char *) obj, sizeof(phrase));
     return o;
 }
 
@@ -140,13 +140,13 @@ int mainu(int argc, char **argv)
     // Si buscamos generar los
     if (strcmp(argv[1], "generate") == 0)
     {
-        const phrase::key_type num_elements = 1 * 1024 * 1024;
+        const phrase::ten_d num_elements = 1 * 1024 * 1024;
         const stxxl::unsigned_type records_in_block = block_size / sizeof(phrase);
         stxxl::syscall_file f(argv[2], stxxl::file::CREAT | stxxl::file::RDWR);
         phrase *array = (phrase *)stxxl::aligned_alloc<STXXL_BLOCK_ALIGN>(block_size);
         memset(array, 0, block_size);
 
-        phrase::key_type cur_key = num_elements;
+        phrase::ten_d cur_key = num_elements;
         for (unsigned i = 0; i < num_elements / records_in_block; i++)
         {
             for (unsigned j = 0; j < records_in_block; j++)
