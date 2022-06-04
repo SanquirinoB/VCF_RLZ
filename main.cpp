@@ -107,7 +107,8 @@ struct Cmp
 
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
-    o.write(const_cast<char *> obj, sizeof(phrase));
+    phrase suitable_obj = obj;
+    o.write((char *) suitable_obj, sizeof(phrase));
     return o;
 }
 
