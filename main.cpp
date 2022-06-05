@@ -184,7 +184,7 @@ int main(int argc, char **argv)
     metainfo info;
 
     std::string path_raw(argv[1]);
-    std::string name("Meta_data/Meta_info.metarlz");
+    std::string name("Tmp/Meta_data/Meta_info.metarlz");
 
     meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
     meta_info_file.read((char *)&info, sizeof(metainfo));
