@@ -159,11 +159,11 @@ int main(int argc, char **argv)
     phrases_file.read((char *)&p1, sizeof(phrase));
     phrases_file.close()
 
-    std::Cout << "#### Inicio Chequeo ####" << std::endl;
+    std::cout << "#### Inicio Chequeo ####" << std::endl;
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
     std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
-    std::Cout << "#### Fin Chequeo ####" << std::endl;
+    std::cout << "#### Fin Chequeo ####" << std::endl;
 
 #if STXXL_PARALLEL_MULTIWAY_MERGE
     STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    phrase p1 = v.front();
+    p1 = v.front();
     
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
