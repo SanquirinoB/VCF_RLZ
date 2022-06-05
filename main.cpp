@@ -78,7 +78,7 @@ struct phrase
     }
 };
 
-inline bool operator<(const phrase &a, const phrase &b)
+inline bool operator>(const phrase &a, const phrase &b)
 {
     return (a.indv() < b.indv() &&
             a.chrom() < b.chrom() &&
@@ -103,7 +103,7 @@ struct Cmp
     typedef bool result_type;
     bool operator()(const phrase &a, const phrase &b) const
     {
-        return a < b;
+        return a > b;
     }
     static phrase min_value()
     {
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    phrase* p1 = v.front();
+    phrase p1 = v.front();
     
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
