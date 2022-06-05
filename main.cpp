@@ -162,12 +162,46 @@ int main(int argc, char **argv)
     // TODO: Larger version
     // main.cpp ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
     // For now
-    if (argc < 2)
+    if (argc < 5)
     {
-        std::cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES]" << std::endl;
+        std::cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES] [OPTIONS]" << std::endl;
         std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
         return -1;
     }
+    // INICIO PROCESO DE PARSING VIA PYTHON
+    int files_expected = int(argv[3]);
+    std::vector<std::string> py_params;
+
+    py_params.push_back("python3 ./VCF_Parsing/parsing_process.py");
+    py_params.push_back(" ");
+    py_params.push_back(argv[1]); // Destination folder
+    py_params.push_back(" ");
+    py_params.push_back(argv[2]); // -n
+    py_params.push_back(" "); 
+    py_params.push_back(argv[3]); // [NUMBER]
+
+    for (int i = 4; i < 4 + files_expected; i++)
+    {
+        py_params.push_back(" ");
+        py_params.push_back(argv[i]); // [FILES]
+    }
+    // TODO: Remain to include parsing options
+
+    // Example: python3 parsing_process.py ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
+    std::string command = std::accumulate(py_params.begin(), py_params.end(), std::string(""));
+    std::cout << "[RLZ] Start parsing process..." << std::endl;
+    if (system(command) == 0)
+    {
+        std::cout << "[RLZ]\tParsing sucessfull!" << std::endl;
+    } else
+    {
+        std::cout << "[RLZ]\tParsing failed, check log for more information :(" << std::endl;
+        return -1;
+    }
+
+    // FIN PROCESO DE PARSING VIA PYTHON
+
+    // INICIO PROCESO DE SORTING
 
     std::ifstream meta_info_file, phrases_file;
     metainfo info;
@@ -211,7 +245,7 @@ int main(int argc, char **argv)
     {
         p1 = v[i];
         std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
-                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
+                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << "|" << p1.len_e() << std::endl;
     }
 
     STXXL_MSG("Sorting...");
@@ -226,7 +260,7 @@ int main(int argc, char **argv)
     {
         p1 = v[i];
         std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
-                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
+                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << "|" << p1.len_e() << std::endl;
     }
 
     return 0;
