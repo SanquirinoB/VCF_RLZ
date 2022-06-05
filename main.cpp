@@ -23,8 +23,8 @@
 #include <fstream>
 #include <string>
 
-typedef stxxl::uint16 four_d;  // 2 byte
-typedef unsigned ten_d;        // 4 bytes
+typedef stxxl::uint16 four_d; // 2 byte
+typedef unsigned ten_d;       // 4 bytes
 
 struct metainfo
 {
@@ -78,11 +78,24 @@ struct phrase
 
 inline bool operator<(const phrase &a, const phrase &b)
 {
-    return (a.indv() < b.indv() &&
-            a.chrom() < b.chrom() &&
-            a.alele() < b.alele() &&
-            a.pos() < b.pos() &&
-            a.pos_e() < b.pos_e());
+    if (a.indv() == b.indv())
+    {
+        if (a.chrom() == b.chrom())
+        {
+            if (a.alele() == b.alele())
+            {
+                if (a.pos() == b.pos())
+                {
+                    return a.pos_e() < b.pos_e();
+                }
+                else{ return a.pos() < b.pos(); }
+            }
+            else{ return a.alele() < b.alele(); }
+        }
+        else{ return a.chrom() < b.chrom(); }
+    }
+    else{ return a.indv() < b.indv(); }
+
 }
 
 inline bool operator==(const phrase &a, const phrase &b)
@@ -197,7 +210,7 @@ int main(int argc, char **argv)
         p1 = v[i];
         std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     }
-    
+
     return 0;
 }
 
