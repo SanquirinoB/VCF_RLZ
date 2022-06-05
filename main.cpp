@@ -211,7 +211,7 @@ int main(int argc, char **argv)
     {
         p1 = v[i];
         std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
-                  << p1.len() << "|" p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
+                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
     }
 
     STXXL_MSG("Sorting...");
@@ -226,7 +226,7 @@ int main(int argc, char **argv)
     {
         p1 = v[i];
         std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
-                  << p1.len() << "|" p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
+                  << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
     }
 
     return 0;
