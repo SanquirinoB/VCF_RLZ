@@ -88,14 +88,25 @@ inline bool operator<(const phrase &a, const phrase &b)
                 {
                     return a.pos_e() < b.pos_e();
                 }
-                else{ return a.pos() < b.pos(); }
+                else
+                {
+                    return a.pos() < b.pos();
+                }
             }
-            else{ return a.alele() < b.alele(); }
+            else
+            {
+                return a.alele() < b.alele();
+            }
         }
-        else{ return a.chrom() < b.chrom(); }
+        else
+        {
+            return a.chrom() < b.chrom();
+        }
     }
-    else{ return a.indv() < b.indv(); }
-
+    else
+    {
+        return a.indv() < b.indv();
+    }
 }
 
 inline bool operator==(const phrase &a, const phrase &b)
@@ -181,6 +192,7 @@ int main(int argc, char **argv)
 #if STXXL_PARALLEL_MULTIWAY_MERGE
     STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
 #endif
+
     stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
 
     // Definimos el tamanos de bloques de memoria
@@ -190,25 +202,31 @@ int main(int argc, char **argv)
     typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
     vector_type v(&f);
 
-    /*
-    STXXL_MSG("Printing...");
-    for(stxxl::int64 i=0; i < v.size(); i++)
-        STXXL_MSG(v[i].key());
-        */
-
     STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
+
+    std::cout << "[RLZ] Unsorted state sample:" << std::endl;
+    std::cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << std::endl;
+    for (int i = 1; i < 10; i++)
+    {
+        p1 = v[i];
+        std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
+                  << p1.len() << "|" p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
+    }
 
     STXXL_MSG("Sorting...");
     stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
 
     STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
 
-    for (int i = 1; i < 20; i++)
+    std::cout << "[RLZ] Sorted state sample:" << std::endl;
+    std::cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << std::endl;
+    for (int i = 1; i < 10; i++)
     {
         p1 = v[i];
-        std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
+        std::cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
+                  << p1.len() << "|" p1.edit() << "|" << p1.pos_e() << p1.len_e() << std::endl;
     }
 
     return 0;
