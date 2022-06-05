@@ -23,7 +23,6 @@
 #include <fstream>
 #include <string>
 
-typedef unsigned char three_d; // 1 byte
 typedef stxxl::uint16 four_d;  // 2 byte
 typedef unsigned ten_d;        // 4 bytes
 
@@ -39,15 +38,14 @@ struct phrase
 {
 
     // Optimal aligment
-    four_d m_indv;
-    three_d m_chrom, m_alele;
+    four_d m_indv, m_chrom, m_alele;
     ten_d m_pos, m_pos_e;
     four_d m_edit;
     ten_d m_len, m_len_e;
 
     four_d indv() const { return m_indv; }
-    three_d chrom() const { return m_chrom; }
-    three_d alele() const { return m_alele; }
+    four_d chrom() const { return m_chrom; }
+    four_d alele() const { return m_alele; }
     ten_d pos() const { return m_pos; }
     ten_d pos_e() const { return m_pos_e; }
     four_d edit() const { return m_edit; }
@@ -55,7 +53,7 @@ struct phrase
     ten_d len_e() const { return m_len_e; }
 
     phrase() {}
-    phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
+    phrase(four_d v_indv, four_d v_chrom, four_d v_alele, ten_d v_pos,
            ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
                                                                        m_chrom(v_chrom),
                                                                        m_alele(v_alele),
@@ -69,12 +67,12 @@ struct phrase
 
     static phrase min_value()
     {
-        return phrase((four_d)0, (three_d)0, (three_d)0, (ten_d)0, (ten_d)0, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((four_d)0, (four_d)0, (four_d)0, (ten_d)0, (ten_d)0, (four_d)0, (ten_d)0, (ten_d)0);
     }
 
     static phrase max_value()
     {
-        return phrase((four_d)9999, (three_d)999, (three_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((four_d)9999, (four_d)999, (four_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
     }
 };
 
@@ -123,11 +121,11 @@ std::ostream &operator<<(std::ostream &o, const phrase &obj)
 }
 
 template <typename T>
-T digit_cast(char *c_number, three_d n_digits)
+T digit_cast(char *c_number, four_d n_digits)
 {
     T result = 0;
 
-    for (three_d i = 0; i < n_digits; i++)
+    for (four_d i = 0; i < n_digits; i++)
     {
         result += (c_number[i] - '0') * pow(10, i);
     }
@@ -156,7 +154,7 @@ int main(int argc, char **argv)
 
     meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
     phrases_file.open(argv[2], std::ifstream::in | std::ifstream::binary);
-    
+
     meta_info_file.read((char *)&info, sizeof(metainfo));
     phrases_file.read((char *)&p1, sizeof(phrase));
 
