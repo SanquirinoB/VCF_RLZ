@@ -155,8 +155,12 @@ int main(int argc, char **argv)
     std::string name("Tmp/Meta_data/Meta_info.metarlz");
 
     meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
-    meta_info_file.open(argv[2], std::ifstream::in | std::ifstream::binary);
-    meta_info_file.read((char *)&p1, sizeof(phrase));
+    phrases_file.open(argv[2], std::ifstream::in | std::ifstream::binary);
+    
+    meta_info_file.read((char *)&info, sizeof(metainfo));
+    phrases_file.read((char *)&p1, sizeof(phrase));
+
+
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
     std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
