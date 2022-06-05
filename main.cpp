@@ -207,34 +207,27 @@ int main(int argc, char **argv)
 
     // INICIO PROCESO DE SORTING
 
-    std::ifstream meta_info_file, phrases_file;
+    std::ifstream meta_info_file;
     metainfo info;
     phrase p1;
 
     std::string path_raw(argv[1]);
-    std::string name("Tmp/Meta_data/Meta_info.metarlz");
+    std::string name_meta("Tmp/Meta_data/Meta_info.metarlz");
+    std::string name_parsing("Tmp/Parsing/phrases.tmprlz");
 
-    meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
-    phrases_file.open(argv[2], std::ifstream::in | std::ifstream::binary);
-
+    meta_info_file.open(path_raw + name_meta, std::ifstream::in | std::ifstream::binary);
     meta_info_file.read((char *)&info, sizeof(metainfo));
-    phrases_file.read((char *)&p1, sizeof(phrase));
-    phrases_file.close();
 
-    std::cout << "#### Inicio Chequeo ####" << std::endl;
-    std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
-    std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
-    std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
-    std::cout << "#### Fin Chequeo ####" << std::endl;
+    std::cout << "[RLZ] Number of identified edits: " << info.n_phrases() << std::endl;
 
 #if STXXL_PARALLEL_MULTIWAY_MERGE
     STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
 #endif
 
-    stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
+    stxxl::syscall_file f(path_raw + name_parsing, stxxl::file::DIRECT | stxxl::file::RDWR);
 
-    // Definimos el tamanos de bloques de memoria
     const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
+    // TODO: Cual es sentido del nro extra?
     unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
 
     typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
