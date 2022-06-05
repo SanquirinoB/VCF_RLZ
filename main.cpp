@@ -63,7 +63,7 @@ struct phrase
                                                                        m_pos_e(v_pos_e),
                                                                        m_edit(v_edit),
                                                                        m_len(v_len),
-                                                                       m_len_e(v_len_e),
+                                                                       m_len_e(v_len_e)
     {
     }
 
