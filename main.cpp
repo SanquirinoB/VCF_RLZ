@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <time.h>
 
 typedef stxxl::uint16 four_d; // 2 byte
 typedef unsigned ten_d;       // 4 bytes
@@ -193,10 +194,14 @@ int main(int argc, char **argv)
 
     // Example: python3 parsing_process.py ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
     std::string command = std::accumulate(py_params.begin(), py_params.end(), std::string(""));
+
+    time_t start, end;
     std::cout << "[RLZ] Start parsing process..." << std::endl;
+    start = clock();
     if (system(command.c_str()) == 0)
     {
-        std::cout << "[RLZ]\tParsing sucessfull!" << std::endl;
+        end = clock();
+        std::cout << "[RLZ]\tParsing sucessfull! Time elpased: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
     } else
     {
         std::cout << "[RLZ]\tParsing failed, check log for more information :(" << std::endl;
@@ -246,7 +251,10 @@ int main(int argc, char **argv)
     }
 
     STXXL_MSG("Sorting...");
+    start = clock();
     stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
+    end = clock();
+    std::cout << "[RLZ]\tSort sucessfull! Time elpased: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
 
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
