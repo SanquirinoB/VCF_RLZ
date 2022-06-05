@@ -19,16 +19,20 @@
 #include <stxxl/mng>
 #include <stxxl/sort>
 #include <stxxl/vector>
-#include <iostream> 
+#include <iostream>
 
 typedef unsigned char three_d; // 1 byte
 typedef stxxl::uint16 four_d;  // 2 byte
 typedef unsigned ten_d;        // 4 bytes
 
+struct metainfo
+{
+    ten_d m_n_phrases;
+    ten_d n_phrases() const { return m_n_phrases; }
+    metainfo() {}
+    metainfo(ten_d n_phrases) : m_n_phrases(n_phrases) {}
+};
 
-/*
-Nota de estado: revisar los errores que tira el hacer make en el proyecto
-*/
 struct phrase
 {
 
@@ -49,13 +53,13 @@ struct phrase
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
            ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
-                                                                      m_chrom(v_chrom),
-                                                                      m_alele(v_alele),
-                                                                      m_pos(v_pos),
-                                                                      m_pos_e(v_pos_e),
-                                                                      m_edit(v_edit),
-                                                                      m_len(v_len),
-                                                                      m_len_e(v_len_e) {}
+                                                                       m_chrom(v_chrom),
+                                                                       m_alele(v_alele),
+                                                                       m_pos(v_pos),
+                                                                       m_pos_e(v_pos_e),
+                                                                       m_edit(v_edit),
+                                                                       m_len(v_len),
+                                                                       m_len_e(v_len_e) {}
 
     static phrase min_value()
     {
@@ -108,7 +112,7 @@ struct Cmp
 std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
     phrase suitable_obj = obj;
-    o.write((char *) &suitable_obj, sizeof(phrase));
+    o.write((char *)&suitable_obj, sizeof(phrase));
     return o;
 }
 
@@ -136,9 +140,8 @@ int mainu(int argc, char **argv)
     // Definimos el tamano del bloque de memoria
     const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
 
-    
 #if STXXL_PARALLEL_MULTIWAY_MERGE
-        STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
+    STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
 #endif
     stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
     unsigned memory_to_use = 50 * 1024 * 1024;
@@ -163,13 +166,31 @@ int mainu(int argc, char **argv)
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    // TODO: Larger version
+    // main.cpp ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
+    // For now
+    if (argc < 2)
+    {
+        std::cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES]" << std::endl;
+        std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
+        return -1;
+    }
+
+    ifstream meta_info_file;
+    metainfo info;
+
+    meta_info_file.open(argv[1] + "Meta_data/Meta_info.metarlz", std::ifstream::in | std::ifstream::binary);
+    meta_info_file.read((char*) &info, sizeof(metainfo));
+
+    // TODO: Hay que hacer que reciba como parametros la carpeta de RLZ no mas, de tal forma que
+    //      lea Resume y consulte la cantidad de frases en el archivo y de ahi ordene :DDD
     // iostream *file;
     // file.open("../VCF_files/Tmp/Parsing/test_4.tmprlz", ios::in);
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
+    std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
     return 0;
-
 }
 
 // vim: et:ts=4:sw=4
