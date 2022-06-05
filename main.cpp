@@ -147,48 +147,50 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    std::ifstream meta_info_file;
+    std::ifstream meta_info_file, phrases_file;
     metainfo info;
+    phrase p1;
 
     std::string path_raw(argv[1]);
     std::string name("Tmp/Meta_data/Meta_info.metarlz");
 
     meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
-    meta_info_file.read((char *)&info, sizeof(metainfo));
-
+    meta_info_file.open(argv[2], std::ifstream::in | std::ifstream::binary);
+    meta_info_file.read((char *)&p1, sizeof(phrase));
+    std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
     std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
 
-#if STXXL_PARALLEL_MULTIWAY_MERGE
-    STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
-#endif
-    stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
+// #if STXXL_PARALLEL_MULTIWAY_MERGE
+//     STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
+// #endif
+//     stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
 
-    // Definimos el tamanos de bloques de memoria
-    const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
-    unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
+//     // Definimos el tamanos de bloques de memoria
+//     const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
+//     unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
 
-    typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
-    vector_type v(&f);
+//     typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
+//     vector_type v(&f);
 
-    /*
-    STXXL_MSG("Printing...");
-    for(stxxl::int64 i=0; i < v.size(); i++)
-        STXXL_MSG(v[i].key());
-        */
+//     /*
+//     STXXL_MSG("Printing...");
+//     for(stxxl::int64 i=0; i < v.size(); i++)
+//         STXXL_MSG(v[i].key());
+//         */
 
-    STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+//     STXXL_MSG("Checking order...");
+//     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    STXXL_MSG("Sorting...");
-    stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
+//     STXXL_MSG("Sorting...");
+//     stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
 
-    STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+//     STXXL_MSG("Checking order...");
+//     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    phrase p1 = v.back();
+//     phrase p1 = v.back();
     
-    std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
+//     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
 }
 
