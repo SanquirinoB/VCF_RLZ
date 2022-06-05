@@ -179,7 +179,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    ifstream meta_info_file;
+    std::ifstream meta_info_file;
     metainfo info;
 
     meta_info_file.open(argv[1] + "Meta_data/Meta_info.metarlz", std::ifstream::in | std::ifstream::binary);
