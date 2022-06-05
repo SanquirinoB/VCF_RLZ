@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
     meta_info_file.read((char *)&info, sizeof(metainfo));
     phrases_file.read((char *)&p1, sizeof(phrase));
-    phrases_file.close()
+    phrases_file.close();
 
     std::cout << "#### Inicio Chequeo ####" << std::endl;
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
