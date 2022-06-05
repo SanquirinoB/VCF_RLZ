@@ -179,19 +179,12 @@ int main(int argc, char **argv)
         std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
         return -1;
     }
-    struct stat s;
-    int status = stat(argv[1], &s);
-    if( status != 0 || (s.st_mode & S_IFDIR))
-    {
-        std::cout << "Invalid destination folder provided: " << argv[1] << std::endl;
-        return -1;
-    }
 
     std::ifstream meta_info_file;
     metainfo info;
 
-    std::string path_raw = &argv[1];
-    std::string name = "Meta_data/Meta_info.metarlz";
+    std::string path_raw(argv[1]);
+    std::string name("Meta_data/Meta_info.metarlz");
 
     meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
     meta_info_file.read((char *)&info, sizeof(metainfo));
