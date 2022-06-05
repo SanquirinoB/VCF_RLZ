@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     // Definimos el tamanos de bloques de memoria
     const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
     unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
-    
+
     typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
     vector_type v(&f);
 
@@ -181,6 +181,9 @@ int main(int argc, char **argv)
 
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+
+    phrase p1 = v[0];
+    std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
 }
 
