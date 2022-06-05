@@ -192,9 +192,12 @@ int main(int argc, char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    p1 = v.front();
+    for (int i = 1; i < 20; i++)
+    {
+        p1 = v[i];
+        std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
+    }
     
-    std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
 }
 
