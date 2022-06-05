@@ -39,29 +39,33 @@ struct phrase
 {
 
     // Optimal aligment
-    four_d m_indv, m_edit;
-    ten_d m_pos, m_pos_e, m_len, m_len_e;
+    four_d m_indv;
     three_d m_chrom, m_alele;
+    ten_d m_pos, m_pos_e;
+    four_d m_edit;
+    ten_d m_len, m_len_e;
 
     four_d indv() const { return m_indv; }
-    four_d edit() const { return m_edit; }
-    ten_d pos() const { return m_pos; }
-    ten_d pos_e() const { return m_pos_e; }
-    ten_d len() const { return m_len; }
-    ten_d len_e() const { return m_len_e; }
     three_d chrom() const { return m_chrom; }
     three_d alele() const { return m_alele; }
+    ten_d pos() const { return m_pos; }
+    ten_d pos_e() const { return m_pos_e; }
+    four_d edit() const { return m_edit; }
+    ten_d len() const { return m_len; }
+    ten_d len_e() const { return m_len_e; }
 
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
            ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
-                                                                       m_edit(v_edit),
+                                                                       m_chrom(v_chrom),
+                                                                       m_alele(v_alele),
                                                                        m_pos(v_pos),
                                                                        m_pos_e(v_pos_e),
+                                                                       m_edit(v_edit),
                                                                        m_len(v_len),
                                                                        m_len_e(v_len_e),
-                                                                       m_chrom(v_chrom),
-                                                                       m_alele(v_alele) {}
+    {
+    }
 
     static phrase min_value()
     {
