@@ -20,6 +20,7 @@
 #include <stxxl/sort>
 #include <stxxl/vector>
 #include <iostream>
+#include <fstream>
 
 typedef unsigned char three_d; // 1 byte
 typedef stxxl::uint16 four_d;  // 2 byte
