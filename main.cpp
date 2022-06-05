@@ -186,7 +186,8 @@ int main(int argc, char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
 
-    phrase p1 = v[0];
+    phrase* p1 = v.front();
+    
     std::cout << p1.indv() << "|" << p1.chrom() << "|" << p1.pos() << "|" << p1.len() << "|" << p1.edit() << std::endl;
     return 0;
 }
