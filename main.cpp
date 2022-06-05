@@ -21,6 +21,7 @@
 #include <stxxl/vector>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 typedef unsigned char three_d; // 1 byte
 typedef stxxl::uint16 four_d;  // 2 byte
@@ -39,28 +40,28 @@ struct phrase
 
     // Optimal aligment
     four_d m_indv, m_edit;
-    three_d m_chrom, m_alele;
     ten_d m_pos, m_pos_e, m_len, m_len_e;
+    three_d m_chrom, m_alele;
 
     four_d indv() const { return m_indv; }
-    three_d chrom() const { return m_chrom; }
-    three_d alele() const { return m_alele; }
+    four_d edit() const { return m_edit; }
     ten_d pos() const { return m_pos; }
     ten_d pos_e() const { return m_pos_e; }
-    four_d edit() const { return m_edit; }
     ten_d len() const { return m_len; }
     ten_d len_e() const { return m_len_e; }
+    three_d chrom() const { return m_chrom; }
+    three_d alele() const { return m_alele; }
 
     phrase() {}
     phrase(four_d v_indv, three_d v_chrom, three_d v_alele, ten_d v_pos,
            ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
-                                                                       m_chrom(v_chrom),
-                                                                       m_alele(v_alele),
+                                                                       m_edit(v_edit),
                                                                        m_pos(v_pos),
                                                                        m_pos_e(v_pos_e),
-                                                                       m_edit(v_edit),
                                                                        m_len(v_len),
-                                                                       m_len_e(v_len_e) {}
+                                                                       m_len_e(v_len_e),
+                                                                       m_chrom(v_chrom),
+                                                                       m_alele(v_alele) {}
 
     static phrase min_value()
     {
@@ -69,7 +70,7 @@ struct phrase
 
     static phrase max_value()
     {
-        phrase((four_d)9999, (three_d)999, (three_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((four_d)9999, (three_d)999, (three_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
     }
 };
 
@@ -178,17 +179,23 @@ int main(int argc, char **argv)
         std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
         return -1;
     }
+    struct stat s;
+    int status = stat(argv[1], &s);
+    if( status != 0 || (s.st_mode & S_IFDIR))
+    {
+        std::cout << "Invalid destination folder provided: " << argv[1] << std::endl;
+        return -1;
+    }
 
     std::ifstream meta_info_file;
     metainfo info;
 
-    meta_info_file.open(argv[1] + "Meta_data/Meta_info.metarlz", std::ifstream::in | std::ifstream::binary);
-    meta_info_file.read((char*) &info, sizeof(metainfo));
+    std::string path_raw = &argv[1];
+    std::string name = "Meta_data/Meta_info.metarlz";
 
-    // TODO: Hay que hacer que reciba como parametros la carpeta de RLZ no mas, de tal forma que
-    //      lea Resume y consulte la cantidad de frases en el archivo y de ahi ordene :DDD
-    // iostream *file;
-    // file.open("../VCF_files/Tmp/Parsing/test_4.tmprlz", ios::in);
+    meta_info_file.open(path_raw + name, std::ifstream::in | std::ifstream::binary);
+    meta_info_file.read((char *)&info, sizeof(metainfo));
+
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
     std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
     return 0;
