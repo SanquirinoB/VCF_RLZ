@@ -131,43 +131,6 @@ T digit_cast(char *c_number, three_d n_digits)
     return result;
 }
 
-int mainu(int argc, char **argv)
-{
-    if (argc < 3)
-    {
-        std::cout << "Usage: " << argv[0] << " action file" << std::endl;
-        std::cout << "       where action is one of generate, sort, ksort, stable_sort, stable_ksort" << std::endl;
-        return -1;
-    }
-    // Definimos el tamano del bloque de memoria
-    const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
-
-#if STXXL_PARALLEL_MULTIWAY_MERGE
-    STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
-#endif
-    stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
-    unsigned memory_to_use = 50 * 1024 * 1024;
-    typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
-    vector_type v(&f);
-
-    /*
-    STXXL_MSG("Printing...");
-    for(stxxl::int64 i=0; i < v.size(); i++)
-        STXXL_MSG(v[i].key());
-        */
-
-    STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
-
-    STXXL_MSG("Sorting...");
-    stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
-
-    STXXL_MSG("Checking order...");
-    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
-
-    return 0;
-}
-
 int main(int argc, char **argv)
 {
     // TODO: Larger version
@@ -191,6 +154,33 @@ int main(int argc, char **argv)
 
     std::cout << "Tamano de estructura phrase " << sizeof(phrase) << std::endl;
     std::cout << "Phrases a leer " << info.n_phrases() << std::endl;
+
+#if STXXL_PARALLEL_MULTIWAY_MERGE
+    STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
+#endif
+    stxxl::syscall_file f(argv[2], stxxl::file::DIRECT | stxxl::file::RDWR);
+
+    // Definimos el tamanos de bloques de memoria
+    const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
+    unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
+    
+    typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
+    vector_type v(&f);
+
+    /*
+    STXXL_MSG("Printing...");
+    for(stxxl::int64 i=0; i < v.size(); i++)
+        STXXL_MSG(v[i].key());
+        */
+
+    STXXL_MSG("Checking order...");
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
+
+    STXXL_MSG("Sorting...");
+    stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
+
+    STXXL_MSG("Checking order...");
+    STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "OK" : "WRONG"));
     return 0;
 }
 
