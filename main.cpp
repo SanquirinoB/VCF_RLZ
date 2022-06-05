@@ -169,7 +169,11 @@ int main(int argc, char **argv)
         return -1;
     }
     // INICIO PROCESO DE PARSING VIA PYTHON
-    int files_expected = int(argv[3]);
+    std::stringstream aux;
+    aux << argv[3];
+    int files_expected;
+    aux >> files_expected;
+
     std::vector<std::string> py_params;
 
     py_params.push_back("python3 ./VCF_Parsing/parsing_process.py");
@@ -190,7 +194,7 @@ int main(int argc, char **argv)
     // Example: python3 parsing_process.py ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
     std::string command = std::accumulate(py_params.begin(), py_params.end(), std::string(""));
     std::cout << "[RLZ] Start parsing process..." << std::endl;
-    if (system(command) == 0)
+    if (system(command.c_str()) == 0)
     {
         std::cout << "[RLZ]\tParsing sucessfull!" << std::endl;
     } else
