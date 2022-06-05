@@ -195,9 +195,9 @@ int main(int argc, char **argv)
     // Example: python3 parsing_process.py ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
     std::string command = std::accumulate(py_params.begin(), py_params.end(), std::string(""));
 
-    time_t start, end;
+    time_t begin, end;
     std::cout << "[RLZ] Start parsing process..." << std::endl;
-    start = clock();
+    begin = clock();
     if (system(command.c_str()) == 0)
     {
         end = clock();
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
     }
 
     STXXL_MSG("Sorting...");
-    start = clock();
+    begin = clock();
     stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
     end = clock();
     std::cout << "[RLZ]\tSort sucessfull! Time elpased: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
