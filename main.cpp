@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 
     std::vector<std::string> py_params;
 
-    py_params.push_back("python3 ./VCF_Parsing/parsing_process.py");
+    py_params.push_back("python3 ./VCF_parsing/parsing_process.py");
     py_params.push_back(" ");
     py_params.push_back(argv[1]); // Destination folder
     py_params.push_back(" ");
