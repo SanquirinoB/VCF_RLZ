@@ -73,7 +73,7 @@ struct phrase
 
     static phrase max_value()
     {
-        return phrase((four_d)9999, (four_d)999, (four_d)99, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((four_d)9999, (four_d)9999, (four_d)9999, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
     }
 };
 
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
     if (system(command.c_str()) == 0)
     {
         end = clock();
-        std::cout << "[RLZ]\tParsing sucessfull! Time elpased: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
+        std::cout << "[RLZ]\tParsing sucessful! Time elapsed: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
     } else
     {
         std::cout << "[RLZ]\tParsing failed, check log for more information :(" << std::endl;
