@@ -161,9 +161,9 @@ T digit_cast(char *c_number, four_d n_digits)
 int main(int argc, char **argv)
 {
     // TODO: Larger version
-    // main.cpp ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
+    // main.cpp ../VCF_files/ ../VCF_files/reference.fa -n 1 ../VCF_files/test_4.vcf
     // For now
-    if (argc < 5)
+    if (argc < 6)
     {
         std::cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES] [OPTIONS]" << std::endl;
         std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
     }
     // INICIO PROCESO DE PARSING VIA PYTHON
     std::stringstream aux;
-    aux << argv[3];
+    aux << argv[4];
     int files_expected;
     aux >> files_expected;
 
@@ -181,11 +181,13 @@ int main(int argc, char **argv)
     py_params.push_back(" ");
     py_params.push_back(argv[1]); // Destination folder
     py_params.push_back(" ");
-    py_params.push_back(argv[2]); // -n
+    py_params.push_back(argv[2]); // reference file
     py_params.push_back(" "); 
-    py_params.push_back(argv[3]); // [NUMBER]
+    y_params.push_back(argv[3]); // -n
+    py_params.push_back(" "); 
+    py_params.push_back(argv[4]); // [NUMBER]
 
-    for (int i = 4; i < 4 + files_expected; i++)
+    for (int i = 5; i < 5 + files_expected; i++)
     {
         py_params.push_back(" ");
         py_params.push_back(argv[i]); // [FILES]
