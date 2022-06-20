@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     py_params.push_back(" ");
     py_params.push_back(argv[2]); // reference file
     py_params.push_back(" "); 
-    y_params.push_back(argv[3]); // -n
+    py_params.push_back(argv[3]); // -n
     py_params.push_back(" "); 
     py_params.push_back(argv[4]); // [NUMBER]
 
