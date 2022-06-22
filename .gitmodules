@@ -4,3 +4,6 @@
 [submodule "stxxl"]
 	path = stxxl
 	url = https://github.com/stxxl/stxxl.git
+[submodule "RLZ-index"]
+	path = RLZ-index
+	url = git@github.com:darroyue/RLZ-index.git
