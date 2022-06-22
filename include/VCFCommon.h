@@ -1,4 +1,4 @@
-#include <stxxl/types.h>
+#include <stxxl/bits/common/types.h>
 
 typedef stxxl::uint16 four_d; // 2 byte
 typedef unsigned ten_d;       // 4 bytes
