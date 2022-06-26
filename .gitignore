@@ -3,3 +3,8 @@ build
 *.errlog
 *.log
 __pycache__/
+
+# Dependencies
+stxxl
+VCF_parsing
+RLZ

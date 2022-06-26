@@ -11,15 +11,17 @@ endif("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}")
 # enable warnings (always good)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 
-# include the STXXL library in my-project
+# INCLUDE LIBRARIES
+#   include the STXXL library in my-project
 add_subdirectory(stxxl)
 
+# ADD FLAGS REQUIRED
 # apply STXXL CXXFLAGS to our configuration
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${STXXL_CXX_FLAGS}")
 
+# ADD INCLUDES PATH OF OUR LIBRARIES
 # add STXXL includes path
 include_directories(${STXXL_INCLUDE_DIRS})
-include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # build a program and link it with STXXL.
 add_executable(project main.cpp)

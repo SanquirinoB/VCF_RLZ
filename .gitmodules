@@ -1,9 +1,1 @@
-[submodule "VCF_parsing"]
-	path = VCF_parsing
-	url = https://github.com/SanquirinoB/VCF_parsing.git
-[submodule "stxxl"]
-	path = stxxl
-	url = https://github.com/stxxl/stxxl.git
-[submodule "RLZ-index"]
-	path = RLZ-index
-	url = git@github.com:darroyue/RLZ-index.git
+
