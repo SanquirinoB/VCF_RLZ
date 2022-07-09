@@ -6,37 +6,43 @@
 #include <string>
 #include <functional>
 #include <sstream>
-#include <time.h>
+
+// From RLZ
+#include <relz/NanoTimer.h>
 
 #include "VCFParsingSorter.h"
+#include "VCFParsingInterpreter.h"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
-    // TODO: Larger version
-    // main.cpp ../VCF_files/ ../VCF_files/reference.fa -n 1 ../VCF_files/test_4.vcf
-    // For now
     if (argc < 6)
     {
-        std::cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES] [OPTIONS]" << std::endl;
-        std::cout << "       where [NUMBER] is the number of [FILES] to be given." << std::endl;
+        cout << "Usage: " << argv[0] << " destination_folder -n [NUMBER] [FILES] [OPTIONS]" << endl;
+        cout << "       where [NUMBER] is the number of [FILES] to be given." << endl;
         return -1;
     }
-    // INICIO PROCESO DE PARSING VIA PYTHON
-    std::stringstream aux;
+
+    // ###########################################
+    //    INICIO PROCESO DE PARSING VIA PYTHON
+    // ###########################################
+
+    // Preparar comando
+    stringstream aux;
     aux << argv[4];
     int files_expected;
     aux >> files_expected;
 
-    std::vector<std::string> py_params;
-
+    vector<string> py_params;
     py_params.push_back("python3 ./VCF_parsing/parsing_process.py");
     py_params.push_back(" ");
     py_params.push_back(argv[1]); // Destination folder
     py_params.push_back(" ");
     py_params.push_back(argv[2]); // reference file
-    py_params.push_back(" "); 
+    py_params.push_back(" ");
     py_params.push_back(argv[3]); // -n
-    py_params.push_back(" "); 
+    py_params.push_back(" ");
     py_params.push_back(argv[4]); // [NUMBER]
 
     for (int i = 5; i < 5 + files_expected; i++)
@@ -47,25 +53,28 @@ int main(int argc, char **argv)
     // TODO: Remain to include parsing options
 
     // Example: python3 parsing_process.py ../VCF_files/ -n 1 ../VCF_files/test_4.vcf
-    std::string command = std::accumulate(py_params.begin(), py_params.end(), std::string(""));
+    string command = accumulate(py_params.begin(), py_params.end(), string(""));
 
-    time_t begin, end;
-    std::cout << "[RLZ] Start parsing process..." << std::endl;
-    begin = clock();
+    cout << "[RLZ] Start parsing process..." << endl;
+    NanoTimer timer;
     if (system(command.c_str()) == 0)
     {
-        end = clock();
-        std::cout << "[RLZ]\tParsing sucessful! Time elapsed: " << (float)(end - begin)/CLOCKS_PER_SEC << std::endl;
-    } else
+        cout << "[RLZ]\tParsing sucessful! Time elapsed: " << timer.getMilisec() << "ms" << endl;
+        // cout << "[RLZ]\tParsing sucessful!" << endl;
+    }
+    else
     {
-        std::cout << "[RLZ]\tParsing failed, check log for more information :(" << std::endl;
+        cout << "[RLZ]\tParsing failed, check log for more information :(" << endl;
         return -1;
     }
 
     VCFParsingSorter Sorter;
+    cout << "[RLZ] Start sorting process..." << endl;
     // FIN PROCESO DE PARSING VIA PYTHON
     int result = Sorter.StartProcess(argv);
-   
+
+    VCFParsingInterpreter Interpreter(argv[1]);
+    Interpreter.StartProcess();
 
     return result;
 }

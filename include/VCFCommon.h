@@ -1,7 +1,25 @@
+#ifndef _VCF_COMMON_H
+#define _VCF_COMMON_H
+
 #include <stxxl/bits/common/types.h>
+#include <iostream>
 
 typedef stxxl::uint16 four_d; // 2 byte
 typedef unsigned ten_d;       // 4 bytes
+
+struct metareference
+{
+    ten_d m_ID;
+    ten_d m_n_bases;
+    ten_d m_rel_pos;
+
+    ten_d ID() const { return m_ID; }
+    ten_d n_bases() const { return m_n_bases; }
+    ten_d rel_pos() const { return m_rel_pos; }
+
+    metareference() {}
+    metareference(ten_d ID, ten_d n_bases, ten_d rel_pos) : m_ID(ID), m_n_bases(n_bases), m_rel_pos(rel_pos) {}
+};
 
 struct metainfo
 {
@@ -13,8 +31,6 @@ struct metainfo
 
 struct phrase
 {
-
-    // Optimal aligment
     four_d m_indv, m_chrom, m_alele;
     ten_d m_pos, m_pos_e;
     four_d m_edit;
@@ -114,22 +130,11 @@ struct Cmp
     }
 };
 
-std::ostream &operator<<(std::ostream &o, const phrase &obj)
+inline std::ostream &operator<<(std::ostream &o, const phrase &obj)
 {
     phrase suitable_obj = obj;
     o.write((char *)&suitable_obj, sizeof(phrase));
     return o;
 }
 
-template <typename T>
-T digit_cast(char *c_number, four_d n_digits)
-{
-    T result = 0;
-
-    for (four_d i = 0; i < n_digits; i++)
-    {
-        result += (c_number[i] - '0') * pow(10, i);
-    }
-
-    return result;
-}
+#endif // _VCF_COMMON_H

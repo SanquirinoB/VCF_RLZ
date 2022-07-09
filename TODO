@@ -1,0 +1,3 @@
+Antes de cerrar el proyecto:
+- Eliminar VCF_parsing del repo y declararlo como dependencia
+- Hacer un README apropiado
