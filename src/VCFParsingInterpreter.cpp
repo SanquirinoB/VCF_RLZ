@@ -46,11 +46,23 @@ void VCFParsingInterpreter::ProcessReference()
     // The first structure contains summary info
     cout << "Lee la estructura" << endl;
     MetaReference_file.read((char *)&metareference_buffer, sizeof(metareference));
-    Reference_len = metareference_buffer.m_n_bases;
-    n_References = metareference_buffer.m_rel_pos;
+    Reference_len = metareference_buffer.n_bases();
+    n_References = metareference_buffer.rel_pos();
 
     // TEST
     cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
+
+    for (int i = 1; i <= 100; i++)
+    {
+        MetaReference_file.read((char *)&metareference_buffer, sizeof(metareference));
+        cout << i << endl;
+        cout << "\tReference: " << metareference_buffer.ID() << "|" << metareference_buffer.n_bases() << "|" << metareference_buffer.rel_pos() << endl;
+        char ref_content[metareference_buffer.n_bases() + 1];
+        ref_content[metareference_buffer.n_bases()] = '\0';
+        Reference_file.seekg(metareference_buffer.rel_pos());
+        Reference_file.readsome((char *)ref_content, metareference_buffer.n_bases());
+        cout << "\tContains: " << ref_content << endl;
+    }
 }
 
 void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(char *phrases_path, vector<pair<unsigned int, unsigned int>> &factors)
