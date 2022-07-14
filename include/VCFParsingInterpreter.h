@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string.h>
 #include <vector>
+#include <map>
 #include <relz/NanoTimer.h>
 #include <VCFCommon.h>
 
@@ -19,24 +20,31 @@ private:
     string Phrases_file_subpath = "Tmp/Parsing/phrases.tmprlz";
     string MetaReference_file_subpath = "Tmp/Meta_data/Reference.metarlz";
     string MetaParsing_file_subpath = "Tmp/Meta_data/Meta_info.metarlz";
+    string IDInfo_file_subpath = "Tmp/Meta_data/ID_info.metarlz";
 
     string Reference_file_path;
     string Phrases_file_path;
     string MetaReference_file_path;
     string MetaParsing_file_path;
+    string IDInfo_file_path;
 
     ifstream Reference_file;
     ifstream Phrases_file;
     ifstream MetaReference_file;
     ifstream MetaParsing_file;
+    ifstream IDInfo_file;
 
     metareference metareference_buffer;
     metainfo metainfo_buffer;
     phrase phrase_buffer;
 
+    // Reference related
     int Reference_len;
     int n_References;
-    int n_Phrases;
+    map<int, metareference> dict_metareference{};
+
+    // Parsing related
+    ten_d n_Phrases;
     int n_Samples;
 
 public:
@@ -45,17 +53,13 @@ public:
     void StartProcess();
 
 private:
-    void buildFactorFromVCFParserPhrase(char *phrases_path, vector<pair<unsigned int, unsigned int>> &factors);
-
-    // File related
-    void OpenBinaryInput(ifstream *stream, string path);
+    void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
 
     // Consume files
-    void ProcessReference();
     void ProcessMetaReference();
+    void ProcessMetaParsing();
 
     void ProcessPhrases();
-    void ProcessMetaParsing();
 };
 
 #endif
