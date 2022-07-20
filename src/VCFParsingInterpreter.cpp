@@ -5,7 +5,7 @@
 using namespace std;
 using namespace sdsl;
 
-#define BINARY_FILE (ifstream::in | ifstream::binary);
+#define BINARY_FILE ifstream::in | ifstream::binary
 
 VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
 {
@@ -67,9 +67,9 @@ void VCFParsingInterpreter::ProcessReference()
 void VCFParsingInterpreter::ProcessMetaParsing()
 {
     MetaParsing_file.open(MetaParsing_file_path, BINARY_FILE);
-    MetaParsing_file.read((char *)metainfo_buffer, sizeof(metainfo));
+    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_Phrases = metainfo_buffer.n_phrases();
-    MetaParsing_file.read((char *)metainfo_buffer, sizeof(metainfo));
+    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_Samples = metainfo_buffer.n_phrases();
     MetaParsing_file.close();
 }
@@ -86,17 +86,34 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
 
     for (ten_d i = 0; i < n_Phrases; i++)
     {
-        // TODO: Check Indv|Chrom|Alele as ID
         Phrases_file.read((char *)&phrase_buffer, sizeof(phrase));
+        // TODO: Check Indv|Chrom|Alele as ID
+
+        // Process factors
         if (i == 0)
         {
             last_pos = phrase_buffer.pos();
             last_l = phrase_buffer.len();
             last_l_e = phrase_buffer.len_e();
+            // Create current factor
+            pair<unsigned int, unsigned int> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
+            factors.push_back(curr_factor);
             continue;
         }
-        // Problema: este calculo asume que los edits son continuos entre si, falta contemplar que hay que mantener la parte de la referencia
-        full_size += (phrase_buffer.pos() - last_l) - last_l + last_l_e;
+
+        ten_d delta_pos = phrase_buffer.pos() - last_pos;
+
+        if (delta_pos > 1) // delta = 0 or delta = 1, assert delta > 0?
+        {
+            pair<unsigned int, unsigned int> inter_factor = make_pair(last_pos + last_l,
+                                                                      phrase_buffer.pos() - last_pos + last_l);
+            factors.push_back(inter_factor);
+        }
+
+        // Create current factor
+        pair<unsigned int, unsigned int> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
+        factors.push_back(curr_factor);
+
         // Update values for next iteration
         last_pos = phrase_buffer.pos();
         last_l = phrase_buffer.len();

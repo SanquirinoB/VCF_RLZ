@@ -59,6 +59,7 @@ private:
     void ProcessMetaReference();
     void ProcessMetaParsing();
 
+    void ProcessReference();
     void ProcessPhrases();
 };
 
