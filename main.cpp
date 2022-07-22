@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     VCFParsingInterpreter Interpreter(argv[1], sorted_phrases);
     Interpreter.Initialize();
 
-    vector<pair<unsigned int, unsigned int>> factors;
+    vector<pair<ll, ll>> factors;
     Interpreter.buildFactorFromVCFParserPhrase(factors);
 
     cout << factors.size() << endl;

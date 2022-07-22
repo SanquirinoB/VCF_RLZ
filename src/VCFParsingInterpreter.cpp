@@ -75,24 +75,24 @@ void VCFParsingInterpreter::ProcessMetaParsing()
     MetaParsing_file.close();
 }
 
-void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
+void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> &factors)
 {
-    int new_factors = 0;
+    ll new_factors = 0;
     // ID variables
-    int curr_indv = -1, curr_chrom = -1, curr_alele = -1;
+    ll curr_indv = -1, curr_chrom = -1, curr_alele = -1;
     // Factor variables
-    int last_pos = 0, last_l = 0, last_l_e = 0;
+    ll last_pos = 0, last_l = 0, last_l_e = 0;
     // Final text variable
-    int full_size = 0, full_size_snapshot = 0;
-    int n_append = -1;
+    ll full_size = 0, full_size_snapshot = 0;
+    ll n_append = -1;
     // Vector which indicates the end of each sample/chrom/alele in the final S
-    vector<int> end_pos;
+    vector<ll> end_pos;
 
-    for (ten_d i = 0; i < n_Phrases; i++)
+    for (ll i = 0; i < n_Phrases; i++)
     {
         phrase_buffer = Phrases[i];
 
-        ten_d delta_pos = phrase_buffer.pos() - last_pos;
+        ll delta_pos = phrase_buffer.pos() - last_pos;
         cout << "DeltaPos: " << delta_pos << endl;
         // Check Indv|Chrom|Alele as ID
         if (curr_alele != phrase_buffer.alele() ||
@@ -111,9 +111,9 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
         {
 
             // Entre cambios de ID no se debe hacer delta_pos
-            int inter_factor_len = phrase_buffer.pos() - last_pos + last_l;
-            pair<unsigned int, unsigned int> inter_factor = make_pair(last_pos + last_l + full_size,
-                                                                      inter_factor_len);
+            ll inter_factor_len = phrase_buffer.pos() - last_pos + last_l;
+            pair<ll, ll> inter_factor = make_pair(last_pos + last_l + full_size,
+                                                  inter_factor_len);
             factors.push_back(inter_factor);
             full_size += inter_factor_len;
             new_factors += 1;
@@ -125,7 +125,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
         }
 
         // Create current factor
-        pair<unsigned int, unsigned int> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
+        pair<ll, ll> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
         factors.push_back(curr_factor);
         new_factors += 1;
 

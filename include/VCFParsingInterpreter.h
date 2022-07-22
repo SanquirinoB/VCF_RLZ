@@ -44,7 +44,7 @@ private:
     map<int, metareference> dict_metareference{};
 
     // Parsing related
-    ten_d n_Phrases;
+    ll n_Phrases;
     int n_Samples;
     vector_type Phrases;
 
@@ -52,7 +52,7 @@ public:
     VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases);
 
     void Initialize();
-    void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
+    void buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> &factors);
 
 private:
     // Consume files

@@ -4,69 +4,69 @@
 #include <stxxl/bits/common/types.h>
 #include <stxxl/vector>
 #include <iostream>
+#include <cstdint>
 
-typedef stxxl::uint16 four_d; // 2 byte
-typedef unsigned ten_d;       // 4 bytes
+typedef long long ll; // 4 bytes
 
 struct metareference
 {
-    ten_d m_ID;
-    ten_d m_n_bases;
-    ten_d m_rel_pos;
+    ll m_ID;
+    ll m_n_bases;
+    ll m_rel_pos;
 
-    ten_d ID() const { return m_ID; }
-    ten_d n_bases() const { return m_n_bases; }
-    ten_d rel_pos() const { return m_rel_pos; }
+    ll ID() const { return m_ID; }
+    ll n_bases() const { return m_n_bases; }
+    ll rel_pos() const { return m_rel_pos; }
 
     metareference() {}
-    metareference(ten_d ID, ten_d n_bases, ten_d rel_pos) : m_ID(ID), m_n_bases(n_bases), m_rel_pos(rel_pos) {}
+    metareference(ll ID, ll n_bases, ll rel_pos) : m_ID(ID), m_n_bases(n_bases), m_rel_pos(rel_pos) {}
 };
 
 struct metainfo
 {
-    ten_d m_n_phrases;
-    ten_d n_phrases() const { return m_n_phrases; }
+    ll m_n_phrases;
+    ll n_phrases() const { return m_n_phrases; }
     metainfo() {}
-    metainfo(ten_d n_phrases) : m_n_phrases(n_phrases) {}
+    metainfo(ll n_phrases) : m_n_phrases(n_phrases) {}
 };
 
 struct phrase
 {
-    four_d m_indv, m_chrom, m_alele;
-    ten_d m_pos, m_pos_e;
-    four_d m_edit;
-    ten_d m_len, m_len_e;
+    ll m_indv, m_chrom, m_alele;
+    ll m_pos, m_pos_e;
+    ll m_edit;
+    ll m_len, m_len_e;
 
-    four_d indv() const { return m_indv; }
-    four_d chrom() const { return m_chrom; }
-    four_d alele() const { return m_alele; }
-    ten_d pos() const { return m_pos; }
-    ten_d pos_e() const { return m_pos_e; }
-    four_d edit() const { return m_edit; }
-    ten_d len() const { return m_len; }
-    ten_d len_e() const { return m_len_e; }
+    ll indv() const { return m_indv; }
+    ll chrom() const { return m_chrom; }
+    ll alele() const { return m_alele; }
+    ll pos() const { return m_pos; }
+    ll pos_e() const { return m_pos_e; }
+    ll edit() const { return m_edit; }
+    ll len() const { return m_len; }
+    ll len_e() const { return m_len_e; }
 
     phrase() {}
-    phrase(four_d v_indv, four_d v_chrom, four_d v_alele, ten_d v_pos,
-           ten_d v_pos_e, four_d v_edit, ten_d v_len, ten_d v_len_e) : m_indv(v_indv),
-                                                                       m_chrom(v_chrom),
-                                                                       m_alele(v_alele),
-                                                                       m_pos(v_pos),
-                                                                       m_pos_e(v_pos_e),
-                                                                       m_edit(v_edit),
-                                                                       m_len(v_len),
-                                                                       m_len_e(v_len_e)
+    phrase(ll v_indv, ll v_chrom, ll v_alele, ll v_pos,
+           ll v_pos_e, ll v_edit, ll v_len, ll v_len_e) : m_indv(v_indv),
+                                                          m_chrom(v_chrom),
+                                                          m_alele(v_alele),
+                                                          m_pos(v_pos),
+                                                          m_pos_e(v_pos_e),
+                                                          m_edit(v_edit),
+                                                          m_len(v_len),
+                                                          m_len_e(v_len_e)
     {
     }
 
     static phrase min_value()
     {
-        return phrase((four_d)0, (four_d)0, (four_d)0, (ten_d)0, (ten_d)0, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0);
     }
 
     static phrase max_value()
     {
-        return phrase((four_d)9999, (four_d)9999, (four_d)9999, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
+        return phrase((ll)9999, (ll)9999, (ll)9999, (ll)9999999999, (ll)9999999999, (ll)0, (ll)0, (ll)0);
     }
 };
 
