@@ -46,15 +46,15 @@ private:
     // Parsing related
     ten_d n_Phrases;
     int n_Samples;
+    vector_type Phrases;
 
 public:
-    VCFParsingInterpreter(char *destination_path);
+    VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases);
 
-    void StartProcess();
-
-private:
+    void Initialize();
     void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
 
+private:
     // Consume files
     void ProcessMetaReference();
     void ProcessMetaParsing();

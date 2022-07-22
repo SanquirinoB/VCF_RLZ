@@ -7,7 +7,7 @@ using namespace sdsl;
 
 #define BINARY_FILE ifstream::in | ifstream::binary
 
-VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
+VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases)
 {
     // Something like .../VCF_files/
     string Destination_path(destination_path);
@@ -20,6 +20,7 @@ VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
     MetaParsing_file_path = Destination_path + MetaParsing_file_subpath;
     IDInfo_file_path = Destination_path + IDInfo_file_subpath;
 
+    Phrases = sorted_phrases;
     // Open all required files
     // OpenBinaryInput(Reference_file, Reference_file_path);
     // cout << "2" << endl;
@@ -29,7 +30,7 @@ VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
     // OpenBinaryInput(MetaParsing_file, MetaParsing_file_path);
 }
 
-void VCFParsingInterpreter::StartProcess()
+void VCFParsingInterpreter::Initialize()
 {
     ProcessReference();
     ProcessMetaParsing();
@@ -76,47 +77,69 @@ void VCFParsingInterpreter::ProcessMetaParsing()
 
 void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
 {
-    ProcessReference();
-    ProcessMetaParsing();
-    // Reference_file.open(Reference_file_path, ifstream::in | ifstream::binary);
-    Phrases_file.open(Phrases_file_path, BINARY_FILE);
-
-    int full_size = 0, last_pos = 0, curr_pos = 0, last_l = 0, last_l_e = 0;
+    int new_factors = 0;
+    // ID variables
+    int curr_indv = -1, curr_chrom = -1, curr_alele = -1;
+    // Factor variables
+    int last_pos = 0, last_l = 0, last_l_e = 0;
+    // Final text variable
+    int full_size = 0, full_size_snapshot = 0;
+    int n_append = -1;
+    // Vector which indicates the end of each sample/chrom/alele in the final S
     vector<int> end_pos;
 
     for (ten_d i = 0; i < n_Phrases; i++)
     {
-        Phrases_file.read((char *)&phrase_buffer, sizeof(phrase));
-        // TODO: Check Indv|Chrom|Alele as ID
-
-        // Process factors
-        if (i == 0)
-        {
-            last_pos = phrase_buffer.pos();
-            last_l = phrase_buffer.len();
-            last_l_e = phrase_buffer.len_e();
-            // Create current factor
-            pair<unsigned int, unsigned int> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
-            factors.push_back(curr_factor);
-            continue;
-        }
+        phrase_buffer = Phrases[i];
 
         ten_d delta_pos = phrase_buffer.pos() - last_pos;
+        cout << "DeltaPos: " << delta_pos << endl;
+        // Check Indv|Chrom|Alele as ID
+        if (curr_alele != phrase_buffer.alele() ||
+            curr_chrom != phrase_buffer.chrom() ||
+            curr_indv != phrase_buffer.indv())
+        {
+            curr_alele = phrase_buffer.alele();
+            curr_chrom = phrase_buffer.chrom();
+            curr_indv = phrase_buffer.indv();
+            end_pos.push_back(full_size);
+            n_append += 1;
+            full_size_snapshot = full_size;
+        }
 
         if (delta_pos > 1) // delta = 0 or delta = 1, assert delta > 0?
         {
-            pair<unsigned int, unsigned int> inter_factor = make_pair(last_pos + last_l,
-                                                                      phrase_buffer.pos() - last_pos + last_l);
+
+            // Entre cambios de ID no se debe hacer delta_pos
+            int inter_factor_len = phrase_buffer.pos() - last_pos + last_l;
+            pair<unsigned int, unsigned int> inter_factor = make_pair(last_pos + last_l + full_size,
+                                                                      inter_factor_len);
             factors.push_back(inter_factor);
+            full_size += inter_factor_len;
+            new_factors += 1;
+            cout << " relleno (" << last_pos + last_l << "," << inter_factor_len << ")" << endl;
+        }
+        else if (delta_pos == 1)
+        {
+            full_size += 1;
         }
 
         // Create current factor
         pair<unsigned int, unsigned int> curr_factor = make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e());
         factors.push_back(curr_factor);
+        new_factors += 1;
+
+        cout << "(" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
+
+        full_size += phrase_buffer.len_e();
 
         // Update values for next iteration
         last_pos = phrase_buffer.pos();
         last_l = phrase_buffer.len();
         last_l_e = phrase_buffer.len_e();
     }
+
+    Phrases_file.close();
+    cout << new_factors << endl;
+    return;
 }

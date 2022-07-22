@@ -9,7 +9,7 @@ public:
 
     ~VCFParsingSorter();
 
-    int StartProcess(char **argv);
+    vector_type StartProcess(char **argv);
 };
 
 #endif

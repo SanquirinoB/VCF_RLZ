@@ -13,7 +13,7 @@ VCFParsingSorter::VCFParsingSorter() {}
 
 VCFParsingSorter::~VCFParsingSorter() {}
 
-int VCFParsingSorter::StartProcess(char **argv)
+vector_type VCFParsingSorter::StartProcess(char **argv)
 {
     // INICIO PROCESO DE SORTING
     // NanoTimer timer;
@@ -36,11 +36,10 @@ int VCFParsingSorter::StartProcess(char **argv)
 
     stxxl::syscall_file f(path_raw + name_parsing, stxxl::file::DIRECT | stxxl::file::RDWR);
 
-    const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
+    // const stxxl::unsigned_type block_size = sizeof(phrase) * 4096;
     // TODO: Cual es sentido del nro extra?
     unsigned memory_to_use = 16 * sizeof(phrase) * info.n_phrases();
-
-    typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, block_size> vector_type;
+    // typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, sizeof(phrase) * 4096> vector_type;
     vector_type v(&f);
 
     STXXL_MSG("Checking order...");
@@ -48,7 +47,7 @@ int VCFParsingSorter::StartProcess(char **argv)
 
     cout << "[RLZ] Unsorted state sample:" << endl;
     cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << endl;
-    for (int i = 1; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
         p1 = v[i];
         cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
@@ -66,12 +65,12 @@ int VCFParsingSorter::StartProcess(char **argv)
 
     cout << "[RLZ] Sorted state sample:" << endl;
     cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << endl;
-    for (int i = 1; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
         p1 = v[i];
         cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
              << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << "|" << p1.len_e() << endl;
     }
 
-    return 0;
+    return v;
 }

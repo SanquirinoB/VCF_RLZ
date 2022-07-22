@@ -2,6 +2,7 @@
 #define _VCF_COMMON_H
 
 #include <stxxl/bits/common/types.h>
+#include <stxxl/vector>
 #include <iostream>
 
 typedef stxxl::uint16 four_d; // 2 byte
@@ -68,6 +69,8 @@ struct phrase
         return phrase((four_d)9999, (four_d)9999, (four_d)9999, (ten_d)9999999999, (ten_d)9999999999, (four_d)0, (ten_d)0, (ten_d)0);
     }
 };
+
+typedef stxxl::vector<phrase, 1, stxxl::lru_pager<8>, sizeof(phrase) * 4096> vector_type;
 
 inline bool operator<(const phrase &a, const phrase &b)
 {

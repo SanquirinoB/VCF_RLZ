@@ -71,12 +71,17 @@ int main(int argc, char **argv)
     VCFParsingSorter Sorter;
     cout << "[RLZ] Start sorting process..." << endl;
     // FIN PROCESO DE PARSING VIA PYTHON
-    int result = Sorter.StartProcess(argv);
+    vector_type sorted_phrases = Sorter.StartProcess(argv);
 
-    VCFParsingInterpreter Interpreter(argv[1]);
-    Interpreter.StartProcess();
+    VCFParsingInterpreter Interpreter(argv[1], sorted_phrases);
+    Interpreter.Initialize();
 
-    return result;
+    vector<pair<unsigned int, unsigned int>> factors;
+    Interpreter.buildFactorFromVCFParserPhrase(factors);
+
+    cout << factors.size() << endl;
+
+    return 0;
 }
 
 // vim: et:ts=4:sw=4
