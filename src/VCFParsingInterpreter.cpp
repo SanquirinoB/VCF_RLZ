@@ -81,7 +81,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     // ID variables
     ll curr_indv = -1, curr_chrom = -1, curr_alele = -1;
     // Factor variables
-    ll last_pos = 0, last_l = 0, last_l_e = 0;
+    ll last_pos = 0, last_l = 0, last_l_e = 0, internal_pos = 0;
     // Final text variable
     ll full_size = 0, full_size_snapshot = 0;
     ll n_append = -1;
@@ -91,18 +91,45 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     for (ll i = 0; i < n_Phrases; i++)
     {
         phrase_buffer = Phrases[i];
+        cout << "Leo la phrase " << i << endl;
+        cout << "\t" << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
+             << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
+        cout << "\t Estado: last_pos|last_l|last_l_e|full_size|internal_pos" << endl;
+        cout << "\t Estado:" << last_pos << "|" << last_l << "|" << last_l_e << "|" << full_size << "|" << internal_pos << endl;
 
-        ll delta_pos = phrase_buffer.pos() - last_pos;
+        ll delta_pos = (phrase_buffer.pos() + internal_pos) - last_pos;
         cout << "DeltaPos: " << delta_pos << endl;
+
         // Check Indv|Chrom|Alele as ID
         if (curr_alele != phrase_buffer.alele() ||
             curr_chrom != phrase_buffer.chrom() ||
             curr_indv != phrase_buffer.indv())
         {
+
+            // Reset position variables
+            if (last_pos != 0)
+            {
+                // Tenemos que hacer un relleno entre el ultimo edit y el final del cromosoma asociado
+                ll end_factor_len = dict_metareference[curr_chrom].n_bases() - (last_pos - internal_pos);
+                pair<ll, ll> inter_factor = make_pair(internal_pos + 1,
+                                                      end_factor_len);
+                factors.push_back(inter_factor);
+                full_size += end_factor_len;
+                internal_pos += end_factor_len;
+                new_factors += 1;
+                cout << " End: (" << inter_factor.first << "," << inter_factor.second << ")" << endl;
+            }
+
+            last_pos = 0;
+            last_l = 0;
+            last_l_e = 0;
+            // Update ID variables
             curr_alele = phrase_buffer.alele();
             curr_chrom = phrase_buffer.chrom();
             curr_indv = phrase_buffer.indv();
+            // Report position of change
             end_pos.push_back(full_size);
+            // Update length variables
             n_append += 1;
             full_size_snapshot = full_size;
         }
@@ -111,13 +138,14 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         {
 
             // Entre cambios de ID no se debe hacer delta_pos
-            ll inter_factor_len = phrase_buffer.pos() - last_pos + last_l;
-            pair<ll, ll> inter_factor = make_pair(last_pos + last_l + full_size,
+            ll inter_factor_len = (phrase_buffer.pos() + internal_pos) - last_pos + last_l;
+            pair<ll, ll> inter_factor = make_pair(last_pos + last_l + internal_pos,
                                                   inter_factor_len);
             factors.push_back(inter_factor);
             full_size += inter_factor_len;
+            internal_pos += inter_factor_len;
             new_factors += 1;
-            cout << " relleno (" << last_pos + last_l << "," << inter_factor_len << ")" << endl;
+            cout << " Inter: (" << inter_factor.first << "," << inter_factor.second << ")" << endl;
         }
         else if (delta_pos == 1)
         {
@@ -134,7 +162,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         full_size += phrase_buffer.len_e();
 
         // Update values for next iteration
-        last_pos = phrase_buffer.pos();
+        last_pos = phrase_buffer.pos() + internal_pos;
         last_l = phrase_buffer.len();
         last_l_e = phrase_buffer.len_e();
     }
