@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
     cout << factors.size() << endl;
 
-    return 0;
+    return 1;
 }
 
 // vim: et:ts=4:sw=4
