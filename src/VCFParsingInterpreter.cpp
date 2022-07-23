@@ -176,7 +176,7 @@ void VCFParsingInterpreter::ProcessMetaParsing()
 void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> &factors)
 {
     // Position variables: Offset checkpoints
-    ll last_pos = 0, last_l = 0, last_l_e = 0;
+    ll last_pos = 0, last_l = 0, last_l_e = 0, pos_ref_consumed = 0;
     // Counter variables: S info
     ll n_S_i = 0;
     vector<ll> S_i_pos;
@@ -188,6 +188,10 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
 
     // Initialization
     phrase_buffer = Phrases[0];
+    cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
+         << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
+    cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+
     last_indv = phrase_buffer.indv();
     last_chrom = phrase_buffer.chrom();
     last_alele = phrase_buffer.alele();
@@ -198,13 +202,19 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         // we need to induce a completition factor
         factor_len = phrase_buffer.pos();
         factors.push_back(make_pair(factor_pos, factor_len));
-        cout << " Init: (" << factor_pos << "," << factor_len << ")" << endl;
+        cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
         S_ref_actual_pos += factor_len;
+        pos_ref_consumed += factor_len;
     }
     // And now create the factor associated to the current phrase
     factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
     cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
     S_extra_size += phrase_buffer.len_e();
+
+    // Update with current values
+    last_pos = phrase_buffer.pos();
+    last_l = phrase_buffer.len();
+    last_l_e = phrase_buffer.len_e();
 
     for (ll i = 1; i < n_Phrases; i++)
     {
@@ -220,9 +230,9 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         {
             // Create an end completition factor for the last sample
             factor_pos = S_ref_actual_pos;
-            factor_len = dict_metareference[last_chrom].n_bases() - (S_ref_actual_pos + 1);
+            factor_len = dict_metareference[last_chrom].n_bases() - (pos_ref_consumed + 1);
             factors.push_back(make_pair(factor_pos, factor_len));
-            cout << " ECmp: (" << factor_pos << "," << factor_len << ")" << endl;
+            cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
             cout << "\tState: " << S_ref_actual_pos << endl;
 
             S_ref_actual_pos += factor_len;
@@ -231,6 +241,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             last_pos = 0;
             last_l = 0;
             last_l_e = 0;
+            pos_ref_consumed = 0;
 
             // Update ID variables
             last_indv = phrase_buffer.indv();
@@ -241,10 +252,11 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             factor_pos = S_ref_actual_pos;
             factor_len = phrase_buffer.pos();
             factors.push_back(make_pair(factor_pos, factor_len));
-            cout << " ICmp: (" << factor_pos << "," << factor_len << ")" << endl;
+            cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
             cout << "\tState: " << S_ref_actual_pos << endl;
 
             S_ref_actual_pos += factor_len;
+            pos_ref_consumed += factor_len;
         }
         else
         {
@@ -254,10 +266,11 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
                 factor_pos = S_ref_actual_pos;
                 factor_len = phrase_buffer.pos() + 1;
                 factors.push_back(make_pair(factor_pos, factor_len));
-                cout << " MCmp: (" << factor_pos << "," << factor_len << ")" << endl;
+                cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
                 cout << "\tState: " << S_ref_actual_pos << endl;
 
                 S_ref_actual_pos += factor_len;
+                pos_ref_consumed += factor_len;
             }
         }
         // Then create the actual factor
@@ -276,7 +289,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     factor_pos = S_ref_actual_pos;
     factor_len = dict_metareference[last_chrom].n_bases() - (S_ref_actual_pos + 1);
     factors.push_back(make_pair(factor_pos, factor_len));
-    cout << " Last: (" << factor_pos << "," << factor_len << ")" << endl;
+    cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
     cout << "\tState: " << S_ref_actual_pos << endl;
 
     S_ref_actual_pos += factor_len;
