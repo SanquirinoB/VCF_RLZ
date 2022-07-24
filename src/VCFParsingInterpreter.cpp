@@ -182,7 +182,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     vector<ll> S_i_pos;
 
     // Helper variables: S construction
-    ll S_ref_actual_pos = 0, S_extra_size = 0, factor_pos = 0, factor_len = 0;
+    ll S_ref_actual_pos = 0, S_size = 0, factor_pos = 0, factor_len = 0;
     // Helper variables: Phrase ID
     ll last_indv = -1, last_chrom = -1, last_alele = -1;
 
@@ -200,16 +200,17 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     {
         // If the first phrase edit doesnt occurr in the first base
         // we need to induce a completition factor
-        factor_len = phrase_buffer.pos();
+        factor_len = phrase_buffer.pos() + 1;
         factors.push_back(make_pair(factor_pos, factor_len));
         cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
         S_ref_actual_pos += factor_len;
         pos_ref_consumed += factor_len;
+        S_size += factor_len;
     }
     // And now create the factor associated to the current phrase
     factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
     cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
-    S_extra_size += phrase_buffer.len_e();
+    S_size += phrase_buffer.len_e();
 
     // Update with current values
     last_pos = phrase_buffer.pos();
@@ -223,6 +224,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
              << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
         cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+
         // If the current sample changes
         if (last_indv != phrase_buffer.indv() ||
             last_chrom != phrase_buffer.chrom() ||
@@ -236,12 +238,18 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             cout << "\tState: " << S_ref_actual_pos << endl;
 
             S_ref_actual_pos += factor_len;
+            S_size += factor_len;
 
             // Update positon checkpoint variables
             last_pos = 0;
             last_l = 0;
             last_l_e = 0;
             pos_ref_consumed = 0;
+
+            if (last_indv != phrase_buffer.indv())
+            {
+                S_ref_actual_pos = 0;
+            }
 
             // Update ID variables
             last_indv = phrase_buffer.indv();
@@ -250,13 +258,14 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
 
             // Then create anothe completition factor for the start
             factor_pos = S_ref_actual_pos;
-            factor_len = phrase_buffer.pos();
+            factor_len = phrase_buffer.pos() + 1;
             factors.push_back(make_pair(factor_pos, factor_len));
             cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
             cout << "\tState: " << S_ref_actual_pos << endl;
 
             S_ref_actual_pos += factor_len;
             pos_ref_consumed += factor_len;
+            S_size += factor_len;
         }
         else
         {
@@ -271,23 +280,27 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
 
                 S_ref_actual_pos += factor_len;
                 pos_ref_consumed += factor_len;
+                S_size += factor_len;
             }
         }
         // Then create the actual factor
         factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
-        cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
-        cout << "\tState: " << S_ref_actual_pos << endl;
+        cout << "\t Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
+        cout << "\t\tState: " << S_ref_actual_pos << endl;
 
-        S_extra_size += phrase_buffer.len_e();
+        S_size += phrase_buffer.len_e();
 
         // Update variables for the next iteration
         last_pos = phrase_buffer.pos();
         last_l = phrase_buffer.len();
         last_l_e = phrase_buffer.len_e();
+        // We need to discard the slice of ref not used in this edit
+        S_ref_actual_pos += phrase_buffer.len();
+        pos_ref_consumed += phrase_buffer.len();
     }
     // For the last edit, do the same as we change to a new sample
     factor_pos = S_ref_actual_pos;
-    factor_len = dict_metareference[last_chrom].n_bases() - (S_ref_actual_pos + 1);
+    factor_len = dict_metareference[last_chrom].n_bases() - (pos_ref_consumed + 1);
     factors.push_back(make_pair(factor_pos, factor_len));
     cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
     cout << "\tState: " << S_ref_actual_pos << endl;
