@@ -80,14 +80,15 @@ inline bool operator<(const phrase &a, const phrase &b)
         {
             if (a.alele() == b.alele())
             {
-                if (a.pos() == b.pos())
-                {
-                    return a.pos_e() < b.pos_e();
-                }
-                else
-                {
-                    return a.pos() < b.pos();
-                }
+                return a.pos() < b.pos();
+                // if (a.pos() == b.pos())
+                // {
+                //     return a.pos_e() < b.pos_e();
+                // }
+                // else
+                // {
+                //     return a.pos() < b.pos();
+                // }
             }
             else
             {
