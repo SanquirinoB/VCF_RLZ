@@ -80,6 +80,10 @@ int main(int argc, char **argv)
     Interpreter.buildFactorFromVCFParserPhrase(factors);
 
     cout << factors.size() << endl;
+    for (int i = 0; i < factors.size(); i++)
+    {
+        cout << "(" << factors[i].first << "," << factors[i].second << ")" << endl;
+    }
 
     return 1;
 }

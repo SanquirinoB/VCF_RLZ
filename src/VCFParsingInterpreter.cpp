@@ -91,12 +91,19 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     ll ref_offset = 0, S_size = 0, factor_pos = 0, factor_len = 0, rel_pos_chrom = 0;
     // Helper variables: Phrase ID
     ll last_indv = -1, last_chrom = -1, last_alele = -1;
+    bool is_same_sample = false;
+
+    // PRINT
+    bool is_debug = false;
 
     // Initialization
     phrase_buffer = Phrases[0];
-    cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
-         << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
-    cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+    if (is_debug)
+    {
+        cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
+             << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
+        cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+    }
 
     last_indv = phrase_buffer.indv();
     last_chrom = phrase_buffer.chrom();
@@ -110,13 +117,19 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         factor_pos = rel_pos_chrom;
         factor_len = phrase_buffer.pos() - 1;
         factors.push_back(make_pair(factor_pos, factor_len));
-        cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
+        if (is_debug)
+        {
+            cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
+        }
         ref_offset += factor_len;
         S_size += factor_len;
     }
     // And now create the factor associated to the current phrase
     factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
-    cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
+    if (is_debug)
+    {
+        cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
+    }
     S_size += phrase_buffer.len_e();
 
     // Update with current values
@@ -129,24 +142,35 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     {
         // For each phrase
         phrase_buffer = Phrases[i];
-        cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
-             << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
-        cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+        is_same_sample = (last_indv == phrase_buffer.indv() &&
+                          last_chrom == phrase_buffer.chrom() &&
+                          last_alele == phrase_buffer.alele());
+        if (is_debug)
+        {
+            cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
+                 << phrase_buffer.len() << "|" << phrase_buffer.edit() << "|" << phrase_buffer.pos_e() << "|" << phrase_buffer.len_e() << endl;
+            cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+        }
 
         // Discard slice not required from the previous phrase and go to the next position
-        ref_offset += last_l + 1;
+        //  We only wont do it if there are multiple edits over the same position (sequence)
+        if (!(is_same_sample && (last_pos == phrase_buffer.pos())))
+        {
+            ref_offset += last_l + 1;
+        }
 
         // If the current sample changes
-        if (last_indv != phrase_buffer.indv() ||
-            last_chrom != phrase_buffer.chrom() ||
-            last_alele != phrase_buffer.alele())
+        if (!is_same_sample)
         {
             // Create an end completition factor for the last sample
             factor_pos = rel_pos_chrom + ref_offset;
             factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
             factors.push_back(make_pair(factor_pos, factor_len));
-            cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-            cout << "\tState: " << ref_offset << endl;
+            if (is_debug)
+            {
+                cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                cout << "\tState: " << ref_offset << endl;
+            }
 
             S_size += factor_len;
 
@@ -158,7 +182,10 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
                 factor_len = dict_metareference[phrase_buffer.chrom()].n_bases() - 1;
                 factors.push_back(make_pair(factor_pos, factor_len));
                 S_size += factor_len;
-                cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                if (is_debug)
+                {
+                    cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                }
             }
             // Or we skip the second alele of the last chromosome
             else if (last_alele == 0 && phrase_buffer.alele() == 0)
@@ -167,7 +194,10 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
                 factor_len = dict_metareference[last_chrom].n_bases() - 1;
                 factors.push_back(make_pair(factor_pos, factor_len));
                 S_size += factor_len;
-                cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                if (is_debug)
+                {
+                    cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                }
             }
 
             // Update positon checkpoint variables
@@ -186,8 +216,11 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             factor_pos = rel_pos_chrom + ref_offset;
             factor_len = phrase_buffer.pos() - 1;
             factors.push_back(make_pair(factor_pos, factor_len));
-            cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-            cout << "\tState: " << ref_offset << endl;
+            if (is_debug)
+            {
+                cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                cout << "\tState: " << ref_offset << endl;
+            }
 
             ref_offset += factor_len;
             S_size += factor_len;
@@ -200,17 +233,22 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
                 factor_pos = rel_pos_chrom + ref_offset;
                 factor_len = (phrase_buffer.pos() - 1) - ref_offset;
                 factors.push_back(make_pair(factor_pos, factor_len));
-                cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                cout << "\tState: " << ref_offset << endl;
-
+                if (is_debug)
+                {
+                    cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+                    cout << "\tState: " << ref_offset << endl;
+                }
                 ref_offset += factor_len;
                 S_size += factor_len;
             }
         }
         // Then create the actual factor
         factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
-        cout << "\t Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
-        cout << "\t\tState: " << ref_offset << endl;
+        if (is_debug)
+        {
+            cout << "\t Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
+            cout << "\t\tState: " << ref_offset << endl;
+        }
 
         S_size += phrase_buffer.len_e();
 
@@ -223,7 +261,10 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     factor_pos = rel_pos_chrom + ref_offset;
     factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
     factors.push_back(make_pair(factor_pos, factor_len));
-    cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
-    cout << "\tState: " << ref_offset << endl;
+    if (is_debug)
+    {
+        cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
+        cout << "\tState: " << ref_offset << endl;
+    }
     S_size += factor_len;
 }
