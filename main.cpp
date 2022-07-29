@@ -9,6 +9,7 @@
 
 // From RLZ
 #include <relz/NanoTimer.h>
+#include <relz/RelzIndexReference.h>
 
 #include "VCFParsingSorter.h"
 #include "VCFParsingInterpreter.h"
@@ -75,15 +76,25 @@ int main(int argc, char **argv)
 
     VCFParsingInterpreter Interpreter(argv[1], sorted_phrases);
     Interpreter.Initialize();
+    pair<const char *, ll> ref_data = Interpreter.GetReference();
 
-    vector<pair<ll, ll>> factors;
+    ll reference_size = ref_data.second;
+    char *reference = new char[reference_size + 1];
+    strcpy(reference, ref_data.first);
+
+    vector<pair<unsigned int, unsigned int>> factors;
     Interpreter.buildFactorFromVCFParserPhrase(factors);
 
-    cout << factors.size() << endl;
+    cout << reference << endl;
     for (int i = 0; i < factors.size(); i++)
     {
         cout << "(" << factors[i].first << "," << factors[i].second << ")" << endl;
     }
+
+    cout << "----- Building index -----\n";
+    timer.reset();
+    RelzIndexReference index(factors, reference, reference_size, reference, reference_size);
+    cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
 
     return 1;
 }

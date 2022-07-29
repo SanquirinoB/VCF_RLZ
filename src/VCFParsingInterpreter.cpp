@@ -79,13 +79,23 @@ void VCFParsingInterpreter::ProcessMetaParsing()
     MetaParsing_file.close();
 }
 
-void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> &factors)
+void VCFParsingInterpreter::UpdateSampleData(ll index, phrase data)
+{
+    dict_samples[index] = sampleID(data.indv(), data.chrom(), data.alele());
+}
+
+void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len)
+{
+    factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
+}
+
+void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
 {
     // Position variables: Offset checkpoints
     ll last_pos = 0, last_l = 0, last_l_e = 0;
     // Counter variables: S info
-    ll n_S_i = 0;
     vector<ll> S_i_pos;
+    ll n_S_i = 0;
 
     // Helper variables: S construction
     ll ref_offset = 0, S_size = 0, factor_pos = 0, factor_len = 0, rel_pos_chrom = 0;
@@ -116,27 +126,33 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
         // we need to induce a completition factor
         factor_pos = rel_pos_chrom;
         factor_len = phrase_buffer.pos() - 1;
-        factors.push_back(make_pair(factor_pos, factor_len));
+        AddFactor(factors, factor_pos, factor_len);
+        ref_offset += factor_len;
+        S_size += factor_len;
+
         if (is_debug)
         {
             cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
         }
-        ref_offset += factor_len;
-        S_size += factor_len;
     }
     // And now create the factor associated to the current phrase
-    factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
+    AddFactor(factors, phrase_buffer.pos_e(), phrase_buffer.len_e());
+    S_size += phrase_buffer.len_e();
+
     if (is_debug)
     {
         cout << " Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
     }
-    S_size += phrase_buffer.len_e();
 
     // Update with current values
     last_pos = phrase_buffer.pos();
     last_l = phrase_buffer.len();
     last_l_e = phrase_buffer.len_e();
     rel_pos_chrom = dict_metareference[phrase_buffer.chrom()].rel_pos();
+
+    n_S_i += 1;
+    UpdateSampleData(n_S_i, phrase_buffer);
+    S_i_pos.push_back(S_size);
 
     for (ll i = 1; i < n_Phrases; i++)
     {
@@ -165,14 +181,20 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             // Create an end completition factor for the last sample
             factor_pos = rel_pos_chrom + ref_offset;
             factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
-            factors.push_back(make_pair(factor_pos, factor_len));
+            AddFactor(factors, factor_pos, factor_len);
+
+            S_size += factor_len;
+
+            // Fill data info
+            n_S_i += 1;
+            UpdateSampleData(n_S_i, phrase_buffer);
+            S_i_pos.push_back(S_size);
+
             if (is_debug)
             {
                 cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
                 cout << "\tState: " << ref_offset << endl;
             }
-
-            S_size += factor_len;
 
             // If we skip one alele, we need to induce it
             // We skip first alele of the new chromosome
@@ -180,8 +202,9 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             {
                 factor_pos = dict_metareference[phrase_buffer.chrom()].rel_pos();
                 factor_len = dict_metareference[phrase_buffer.chrom()].n_bases() - 1;
-                factors.push_back(make_pair(factor_pos, factor_len));
+                AddFactor(factors, factor_pos, factor_len);
                 S_size += factor_len;
+
                 if (is_debug)
                 {
                     cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
@@ -192,8 +215,9 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             {
                 factor_pos = dict_metareference[last_chrom].rel_pos();
                 factor_len = dict_metareference[last_chrom].n_bases() - 1;
-                factors.push_back(make_pair(factor_pos, factor_len));
+                AddFactor(factors, factor_pos, factor_len);
                 S_size += factor_len;
+
                 if (is_debug)
                 {
                     cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
@@ -215,7 +239,8 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             // Then create anothe completition factor for the start
             factor_pos = rel_pos_chrom + ref_offset;
             factor_len = phrase_buffer.pos() - 1;
-            factors.push_back(make_pair(factor_pos, factor_len));
+            AddFactor(factors, factor_pos, factor_len);
+
             if (is_debug)
             {
                 cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
@@ -232,7 +257,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             {
                 factor_pos = rel_pos_chrom + ref_offset;
                 factor_len = (phrase_buffer.pos() - 1) - ref_offset;
-                factors.push_back(make_pair(factor_pos, factor_len));
+                AddFactor(factors, factor_pos, factor_len);
                 if (is_debug)
                 {
                     cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
@@ -243,7 +268,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
             }
         }
         // Then create the actual factor
-        factors.push_back(make_pair(phrase_buffer.pos_e(), phrase_buffer.len_e()));
+        AddFactor(factors, phrase_buffer.pos_e(), phrase_buffer.len_e());
         if (is_debug)
         {
             cout << "\t Actu: (" << phrase_buffer.pos_e() << "," << phrase_buffer.len_e() << ")" << endl;
@@ -260,11 +285,40 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> 
     // For the last edit, do the same as we change to a new sample
     factor_pos = rel_pos_chrom + ref_offset;
     factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
-    factors.push_back(make_pair(factor_pos, factor_len));
+    AddFactor(factors, factor_pos, factor_len);
     if (is_debug)
     {
         cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
         cout << "\tState: " << ref_offset << endl;
     }
     S_size += factor_len;
+
+    n_S_i += 1;
+    UpdateSampleData(n_S_i, phrase_buffer);
+    S_i_pos.push_back(S_size);
+}
+
+pair<const char *, ll> VCFParsingInterpreter::GetReference()
+{
+    cout << 1 << endl;
+    Reference_file.open(Reference_file_path, ios::in);
+    cout << Reference_len << endl;
+
+    string reference_aux;
+    if (Reference_file.is_open())
+    {
+        getline(Reference_file, reference_aux);
+    }
+    else
+    {
+        cout << 69 << endl;
+    }
+    cout << 3 << endl;
+
+    Reference_file.clear();
+    Reference_file.close();
+    cout << 5 << endl;
+
+    const char *reference = reference_aux.c_str();
+    return make_pair(reference, Reference_len);
 }

@@ -30,6 +30,20 @@ struct metainfo
     metainfo(ll n_phrases) : m_n_phrases(n_phrases) {}
 };
 
+struct sampleID
+{
+    ll m_ID;
+    char m_chrom;
+    char m_alele;
+
+    ll ID() const { return m_ID; }
+    char chrom() const { return m_chrom; }
+    char alele() const { return m_alele; }
+
+    sampleID() {}
+    sampleID(ll ID, char chrom, char alele) : m_ID(ID), m_chrom(chrom), m_alele(alele) {}
+};
+
 struct phrase
 {
     ll m_indv, m_chrom, m_alele;

@@ -42,6 +42,7 @@ private:
     int Reference_len;
     int n_References;
     map<int, metareference> dict_metareference{};
+    map<int, sampleID> dict_samples{};
 
     // Parsing related
     ll n_Phrases;
@@ -52,7 +53,8 @@ public:
     VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases);
 
     void Initialize();
-    void buildFactorFromVCFParserPhrase(vector<pair<ll, ll>> &factors);
+    void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
+    pair<const char *, ll> GetReference();
 
 private:
     // Consume files
@@ -61,6 +63,9 @@ private:
 
     void ProcessReference();
     void ProcessPhrases();
+
+    void UpdateSampleData(ll index, phrase data);
+    void AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len);
 };
 
 #endif
