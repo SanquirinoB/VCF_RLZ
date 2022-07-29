@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 
     cout << "----- Building index -----\n";
     timer.reset();
-    RelzIndexReference index(factors, reference, reference_size, reference, reference_size);
+    RelzIndexReference index(factors, reference, reference_size + 1, reference, reference_size + 1);
     cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
 
     return 1;
