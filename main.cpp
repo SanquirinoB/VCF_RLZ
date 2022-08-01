@@ -72,9 +72,9 @@ int main(int argc, char **argv)
     VCFParsingSorter Sorter;
     cout << "[RLZ] Start sorting process..." << endl;
     // FIN PROCESO DE PARSING VIA PYTHON
-    vector_type sorted_phrases = Sorter.StartProcess(argv);
+    Sorter.StartProcess(argv);
 
-    VCFParsingInterpreter Interpreter(argv[1], sorted_phrases);
+    VCFParsingInterpreter Interpreter(argv[1]);
     Interpreter.Initialize();
     pair<const char *, ll> ref_data = Interpreter.GetReference();
 

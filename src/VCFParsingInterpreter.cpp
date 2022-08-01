@@ -7,7 +7,7 @@ using namespace sdsl;
 
 #define BINARY_FILE ifstream::in | ifstream::binary
 
-VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases)
+VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
 {
     // Something like .../VCF_files/
     string Destination_path(destination_path);
@@ -107,7 +107,7 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
     bool is_debug = false;
 
     // Initialization
-    phrase_buffer = Phrases[0];
+    Phrases_file.read((char *)&phrase_buffer, sizeof(phrase));
     if (is_debug)
     {
         cout << phrase_buffer.indv() << "|" << phrase_buffer.chrom() << "|" << phrase_buffer.alele() << "|" << phrase_buffer.pos() << "|"
