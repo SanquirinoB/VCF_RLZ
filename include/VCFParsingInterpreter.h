@@ -36,7 +36,6 @@ private:
 
     metareference metareference_buffer;
     metainfo metainfo_buffer;
-    phrase phrase_buffer;
 
     // Reference related
     int Reference_len;
@@ -50,7 +49,7 @@ private:
     vector_type Phrases;
 
 public:
-    VCFParsingInterpreter(char *destination_path, vector_type &sorted_phrases);
+    VCFParsingInterpreter(char *destination_path);
 
     void Initialize();
     void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
