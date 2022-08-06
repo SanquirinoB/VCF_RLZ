@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     strcpy(reference, ref_data.first);
 
     vector<pair<unsigned int, unsigned int>> factors;
-    Interpreter.buildFactorFromVCFParserPhrase(factors);
+    ll s_size = Interpreter.buildFactorFromVCFParserPhrase(factors);
 
     cout << reference << endl;
     for (int i = 0; i < factors.size(); i++)
@@ -93,10 +93,10 @@ int main(int argc, char **argv)
 
     cout << "----- Building index -----\n";
     timer.reset();
-    RelzIndexReference index(factors, reference, reference_size + 1, reference, reference_size + 1);
+    RelzIndexReference index(factors, reference, s_size + 1, reference, reference_size + 1);
     cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
 
-    return 1;
+    return 0;
 }
 
 // vim: et:ts=4:sw=4

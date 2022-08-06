@@ -90,7 +90,7 @@ void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &
     factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
 }
 
-void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
+ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
 {
     // Position variables: Offset checkpoints
     ll last_pos = 0, last_l = 0, last_l_e = 0;
@@ -113,8 +113,8 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
 
     // Initialization
     Phrases_file.open(Phrases_file_path, BINARY_FILE);
-    Phrases_file.read((char *)&buffer, sizeof(phrase));
-    curr_phrase = buffer;
+    Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+    //curr_phrase = buffer;
 
     if (is_debug)
     {
@@ -165,8 +165,8 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
     for (ll i = 1; i < n_Phrases; i++)
     {
         // For each phrase
-        Phrases_file.read((char *)&buffer, sizeof(phrase));
-        curr_phrase = buffer;
+        Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+        // curr_phrase = buffer;
         is_same_sample = (last_indv == curr_phrase.indv() &&
                           last_chrom == curr_phrase.chrom() &&
                           last_alele == curr_phrase.alele());
@@ -308,6 +308,8 @@ void VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned 
 
     Phrases_file.clear();
     Phrases_file.close();
+
+    return S_size;
 }
 
 pair<const char *, ll> VCFParsingInterpreter::GetReference()

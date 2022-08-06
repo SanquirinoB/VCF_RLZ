@@ -52,7 +52,7 @@ public:
     VCFParsingInterpreter(char *destination_path);
 
     void Initialize();
-    void buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
+    ll buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
     pair<const char *, ll> GetReference();
 
 private:
