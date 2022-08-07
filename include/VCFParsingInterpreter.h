@@ -48,11 +48,18 @@ private:
     int n_Samples;
     vector_type Phrases;
 
+    // Actual S related
+    ll S_size;
+    ll n_S_i;
+    ll ref_offset;
+    ll rel_pos_chrom;
+
 public:
     VCFParsingInterpreter(char *destination_path);
 
     void Initialize();
     ll buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
+    ll buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsigned int, unsigned int>> &factors);
     pair<const char *, ll> GetReference();
 
 private:
@@ -65,7 +72,17 @@ private:
 
     void UpdateSampleData(ll index, phrase data);
     void AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len);
+
+    bool PhraseIsValidInit(phrase curr);
     bool NeedsToFullFill(phrase ref, phrase curr);
+    bool ChangeInSameIndvChromAlele(phrase ref, phrase curr);
+    bool ChangeInSameIndvChromDiffAlele(phrase ref, phrase curr);
+    bool ChangeInSameIndvDiffChrom(phrase ref, phrase curr);
+    bool ChangeInDiffIndv(phrase ref, phrase curr);
+
+    void InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
+
+    void PrintState(phrase curr_phrase, ll last_pos, ll last_l, ll last_l_e);
 };
 
 #endif

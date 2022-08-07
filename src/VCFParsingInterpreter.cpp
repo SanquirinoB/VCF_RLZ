@@ -90,25 +90,129 @@ void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &
     factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
 }
 
-bool VCFParsingInterpreter::NeedsToFullFill(phrase ref, phrase curr)
+bool VCFParsingInterpreter::PhraseIsValidInit(phrase curr)
+{
+    return ((curr.indv() == 0) &&
+            (curr.chrom() == 1) &&
+            (curr.alele() == 0) &&
+            (curr.pos() == 0));
+}
+
+bool VCFParsingInterpreter::ChangeInSameIndvChromAlele(phrase ref, phrase curr)
 {
     bool same_sample = ref.indv() == curr.indv();
     bool same_chrom = ref.chrom() == curr.chrom();
     bool same_alele = ref.alele() == curr.alele();
 
-    bool is_change_in_same_alele = (same_sample && same_chrom && same_alele);
+    return (same_sample && same_chrom && same_alele);
+}
 
-    bool is_contigous_alele = (same_sample && same_chrom && ((ref.alele() == 1) && (curr.alele() == 0)));
+bool VCFParsingInterpreter::ChangeInSameIndvChromDiffAlele(phrase ref, phrase curr)
+{
+    bool same_sample = ref.indv() == curr.indv();
+    bool same_chrom = ref.chrom() == curr.chrom();
+    return (same_sample && same_chrom && ((ref.alele() == 0) && (curr.alele() == 1)));
+}
 
-    bool is_contigous_end_chrom = (same_sample &&
-                                   (ref.chrom() == curr.chrom() - 1) &&
-                                   ((ref.alele() == 1) && (curr.alele() == 0)));
+bool VCFParsingInterpreter::ChangeInSameIndvDiffChrom(phrase ref, phrase curr)
+{
+    bool same_sample = ref.indv() == curr.indv();
+    bool diff_chrom = ref.chrom() != curr.chrom();
+    return (same_sample && diff_chrom);
+}
 
-    bool is_contigous_end_sample = ((ref.indv() == curr.indv() - 1) &&
-                                    ((ref.chrom() == 23) && (curr.chrom() == 1)) &&
-                                    ((ref.alele() == 1) && (curr.chrom() == 0)));
+bool VCFParsingInterpreter::ChangeInDiffIndv(phrase ref, phrase curr)
+{
+    return ref.indv() != curr.indv();
+}
 
-    return !(is_change_in_same_alele || is_contigous_alele || is_contigous_end_chrom || is_contigous_end_sample);
+void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy)
+{
+    ll factor_pos = 0, factor_len = 0;
+
+    if (ChangeInSameIndvChromAlele(last_phrase, curr_phrase))
+    {
+        /* code */
+    }
+    else if (ChangeInSameIndvChromDiffAlele(last_phrase, curr_phrase))
+    {
+        /* code */
+    }
+    else if (ChangeInSameIndvDiffChrom(last_phrase, curr_phrase))
+    {
+        /* code */
+    }
+    else if (ChangeInDiffIndv(last_phrase, curr_phrase))
+    {
+        /* code */
+    }
+}
+
+void VCFParsingInterpreter::PrintState(phrase curr_phrase, ll last_pos, ll last_l, ll last_l_e)
+{
+    cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|"
+         << curr_phrase.len() << "|" << curr_phrase.edit() << "|" << curr_phrase.pos_e() << "|" << curr_phrase.len_e() << endl;
+    cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+}
+
+ll VCFParsingInterpreter::buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsigned int, unsigned int>> &factors)
+{
+    // Phrase buffer
+    phrase curr_phrase;
+    // Vector with checkpoints of sample position start inside S
+    vector<ll> S_i_pos;
+    // Actual size of S
+    S_size = 0;
+    n_S_i = 0;
+    // Helpers
+    ref_offset = 0;
+    ll factor_pos = 0, factor_len = 0;
+    bool last_is_dummy = true, curr_is_dummy = false;
+    bool is_debug = true;
+
+    // Open phrases file
+    Phrases_file.open(Phrases_file_path, BINARY_FILE);
+    // Read first dummy phrase
+    Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+
+    // Initialize indentifier variants
+    // Init value should be 0
+    // ll last_indv = curr_phrase.indv();
+    // // Init value should be 1
+    // ll last_chrom = curr_phrase.chrom();
+    // // Init value should be 0
+    // ll last_alele = curr_phrase.alele();
+    // // Init value should be 0
+    // ll last_pos = curr_phrase.pos();
+    // // Init value should be 0
+    // ll last_l = curr_phrase.len();
+    // // Init value should be 0
+    // ll last_l_e = curr_phrase.len_e();
+    // // Init value should be 0
+    phrase last_phrase = curr_phrase;
+    rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
+
+    for (ll i = 1; i <= n_Phrases; i++)
+    {
+        // Read the next phrase (Read the first actual phrase)
+        Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+        if (i == n_Phrases)
+        {
+            curr_is_dummy = true;
+        }
+
+        // First check if with respect to the last phrase we need to induce full filling phrases
+        InduceFillFactors(factors, last_phrase, curr_phrase, last_is_dummy, curr_is_dummy);
+        last_is_dummy = false;
+        // Add actual edit inside current phrase
+        AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
+        if (is_debug)
+            PrintState(curr_phrase, last_phrase.pos(), last_phrase.len(), last_phrase.len_e());
+        S_size += curr_phrase.len_e();
+
+        // Update variables for the next iteration
+        last_phrase = curr_phrase;
+    }
 }
 
 ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
