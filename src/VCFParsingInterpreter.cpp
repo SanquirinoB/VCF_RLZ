@@ -90,6 +90,27 @@ void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &
     factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
 }
 
+bool VCFParsingInterpreter::NeedsToFullFill(phrase ref, phrase curr)
+{
+    bool same_sample = ref.indv() == curr.indv();
+    bool same_chrom = ref.chrom() == curr.chrom();
+    bool same_alele = ref.alele() == curr.alele();
+
+    bool is_change_in_same_alele = (same_sample && same_chrom && same_alele);
+
+    bool is_contigous_alele = (same_sample && same_chrom && ((ref.alele() == 1) && (curr.alele() == 0)));
+
+    bool is_contigous_end_chrom = (same_sample &&
+                                   (ref.chrom() == curr.chrom() - 1) &&
+                                   ((ref.alele() == 1) && (curr.alele() == 0)));
+
+    bool is_contigous_end_sample = ((ref.indv() == curr.indv() - 1) &&
+                                    ((ref.chrom() == 23) && (curr.chrom() == 1)) &&
+                                    ((ref.alele() == 1) && (curr.chrom() == 0)));
+
+    return !(is_change_in_same_alele || is_contigous_alele || is_contigous_end_chrom || is_contigous_end_sample);
+}
+
 ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
 {
     // Position variables: Offset checkpoints
@@ -114,7 +135,7 @@ ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned in
     // Initialization
     Phrases_file.open(Phrases_file_path, BINARY_FILE);
     Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
-    //curr_phrase = buffer;
+    // curr_phrase = buffer;
 
     if (is_debug)
     {

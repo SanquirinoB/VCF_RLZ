@@ -65,6 +65,7 @@ private:
 
     void UpdateSampleData(ll index, phrase data);
     void AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len);
+    bool NeedsToFullFill(phrase ref, phrase curr);
 };
 
 #endif
