@@ -60,7 +60,6 @@ public:
 
     void Initialize();
     ll buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
-    ll buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsigned int, unsigned int>> &factors);
     pair<const char *, ll> GetReference();
 
 private:

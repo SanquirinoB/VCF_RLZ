@@ -95,7 +95,10 @@ void VCFParsingInterpreter::UpdateSampleData(ll index, phrase data)
 void VCFParsingInterpreter::HigienicPushBack(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor)
 {
     if (factor.second > 0)
-        factors.push_back(factor);
+    {
+        factors.push_back(make_pair((unsigned int)factor.first, (unsigned int)factor.second));
+        S_size += factor.second;
+    }
 }
 
 bool VCFParsingInterpreter::PhraseIsValidInit(phrase curr)
@@ -298,7 +301,7 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             if (actual_alele == 1)
             {
                 // If reach chrom limit
-                if (actual_chrom == n_chromosomes)
+                if (actual_chrom == n_chromosomes - 1)
                 {
                     // Move to next indv
                     actual_indv++;
@@ -346,7 +349,7 @@ void VCFParsingInterpreter::PrintState(phrase curr_phrase, ll last_pos, ll last_
     cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
 }
 
-ll VCFParsingInterpreter::buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsigned int, unsigned int>> &factors)
+ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
 {
     // Phrase buffer
     phrase curr_phrase;
@@ -383,11 +386,11 @@ ll VCFParsingInterpreter::buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsig
     phrase last_phrase = curr_phrase;
     rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
 
-    for (ll i = 1; i <= n_Phrases; i++)
+    for (ll i = 1; i < n_Phrases; i++)
     {
         // Read the next phrase (Read the first actual phrase)
         Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
-        if (i == n_Phrases)
+        if (i == n_Phrases - 1)
         {
             curr_is_dummy = true;
         }
@@ -395,238 +398,248 @@ ll VCFParsingInterpreter::buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsig
         // First check if with respect to the last phrase we need to induce full filling phrases
         InduceFillFactors(factors, last_phrase, curr_phrase, last_is_dummy, curr_is_dummy);
         last_is_dummy = false;
-        // Add actual edit inside current phrase
-        AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
+
+        if (!curr_is_dummy)
+        {
+            // Add actual edit inside current phrase
+            HigienicPushBack(factors, make_pair(curr_phrase.pos_e(), curr_phrase.len_e()));
+        }
+
         if (is_debug)
             PrintState(curr_phrase, last_phrase.pos(), last_phrase.len(), last_phrase.len_e());
-        S_size += curr_phrase.len_e();
 
         // Update variables for the next iteration
         last_phrase = curr_phrase;
+        rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
     }
-}
-
-ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
-{
-    // Position variables: Offset checkpoints
-    ll last_pos = 0, last_l = 0, last_l_e = 0;
-    // Counter variables: S info
-    vector<ll> S_i_pos;
-    ll n_S_i = 0;
-
-    // Helper variables: S construction
-    ll ref_offset = 0, S_size = 0, factor_pos = 0, factor_len = 0, rel_pos_chrom = 0;
-    // Helper variables: Phrase ID
-    ll last_indv = -1, last_chrom = -1, last_alele = -1;
-    bool is_same_sample = false;
-
-    // PRINT
-    bool is_debug = false;
-
-    // Helpers
-    phrase buffer;
-    phrase curr_phrase;
-
-    // Initialization
-    Phrases_file.open(Phrases_file_path, BINARY_FILE);
-    Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
-    // curr_phrase = buffer;
-
-    if (is_debug)
-    {
-        cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|"
-             << curr_phrase.len() << "|" << curr_phrase.edit() << "|" << curr_phrase.pos_e() << "|" << curr_phrase.len_e() << endl;
-        cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
-    }
-
-    last_indv = curr_phrase.indv();
-    last_chrom = curr_phrase.chrom();
-    last_alele = curr_phrase.alele();
-    rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
-
-    if (curr_phrase.pos() != 0)
-    {
-        // If the first phrase edit doesnt occurr in the first base
-        // we need to induce a completition factor
-        factor_pos = rel_pos_chrom;
-        factor_len = curr_phrase.pos() - 1;
-        AddFactor(factors, factor_pos, factor_len);
-        ref_offset += factor_len;
-        S_size += factor_len;
-
-        if (is_debug)
-        {
-            cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
-        }
-    }
-    // And now create the factor associated to the current phrase
-    AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
-    S_size += curr_phrase.len_e();
-
-    if (is_debug)
-    {
-        cout << " Actu: (" << curr_phrase.pos_e() << "," << curr_phrase.len_e() << ")" << endl;
-    }
-
-    // Update with current values
-    last_pos = curr_phrase.pos();
-    last_l = curr_phrase.len();
-    last_l_e = curr_phrase.len_e();
-    rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
-
-    n_S_i += 1;
-    UpdateSampleData(n_S_i, curr_phrase);
-    S_i_pos.push_back(S_size);
-
-    for (ll i = 1; i < n_Phrases; i++)
-    {
-        // For each phrase
-        Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
-        // curr_phrase = buffer;
-        is_same_sample = (last_indv == curr_phrase.indv() &&
-                          last_chrom == curr_phrase.chrom() &&
-                          last_alele == curr_phrase.alele());
-        if (is_debug)
-        {
-            cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|"
-                 << curr_phrase.len() << "|" << curr_phrase.edit() << "|" << curr_phrase.pos_e() << "|" << curr_phrase.len_e() << endl;
-            cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
-        }
-
-        // Discard slice not required from the previous phrase and go to the next position
-        //  We only wont do it if there are multiple edits over the same position (sequence)
-        if (!(is_same_sample && (last_pos == curr_phrase.pos())))
-        {
-            ref_offset += last_l + 1;
-        }
-
-        // If the current sample changes
-        if (!is_same_sample)
-        {
-            // Create an end completition factor for the last sample
-            factor_pos = rel_pos_chrom + ref_offset;
-            factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
-            AddFactor(factors, factor_pos, factor_len);
-
-            S_size += factor_len;
-
-            // Fill data info
-            n_S_i += 1;
-            UpdateSampleData(n_S_i, curr_phrase);
-            S_i_pos.push_back(S_size);
-
-            if (is_debug)
-            {
-                cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                cout << "\tState: " << ref_offset << endl;
-            }
-
-            // If we skip one alele, we need to induce it
-            // We skip first alele of the new chromosome
-            if (last_alele == 1 && curr_phrase.alele() == 1)
-            {
-                factor_pos = dict_metareference[curr_phrase.chrom()].rel_pos();
-                factor_len = dict_metareference[curr_phrase.chrom()].n_bases() - 1;
-                AddFactor(factors, factor_pos, factor_len);
-                S_size += factor_len;
-
-                if (is_debug)
-                {
-                    cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                }
-            }
-            // Or we skip the second alele of the last chromosome
-            else if (last_alele == 0 && curr_phrase.alele() == 0)
-            {
-                factor_pos = dict_metareference[last_chrom].rel_pos();
-                factor_len = dict_metareference[last_chrom].n_bases() - 1;
-                AddFactor(factors, factor_pos, factor_len);
-                S_size += factor_len;
-
-                if (is_debug)
-                {
-                    cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                }
-            }
-
-            // Update positon checkpoint variables
-            last_pos = 0;
-            last_l = 0;
-            last_l_e = 0;
-            ref_offset = 0;
-
-            // Update ID variables
-            last_indv = curr_phrase.indv();
-            last_chrom = curr_phrase.chrom();
-            last_alele = curr_phrase.alele();
-            rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
-
-            // Then create anothe completition factor for the start
-            factor_pos = rel_pos_chrom + ref_offset;
-            factor_len = curr_phrase.pos() - 1;
-            AddFactor(factors, factor_pos, factor_len);
-
-            if (is_debug)
-            {
-                cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                cout << "\tState: " << ref_offset << endl;
-            }
-
-            ref_offset += factor_len;
-            S_size += factor_len;
-        }
-        else
-        {
-            // Just create a completition factor if it required
-            if (curr_phrase.pos() - last_pos > 1)
-            {
-                factor_pos = rel_pos_chrom + ref_offset;
-                factor_len = (curr_phrase.pos() - 1) - ref_offset;
-                AddFactor(factors, factor_pos, factor_len);
-                if (is_debug)
-                {
-                    cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
-                    cout << "\tState: " << ref_offset << endl;
-                }
-                ref_offset += factor_len;
-                S_size += factor_len;
-            }
-        }
-        // Then create the actual factor
-        AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
-        if (is_debug)
-        {
-            cout << "\t Actu: (" << curr_phrase.pos_e() << "," << curr_phrase.len_e() << ")" << endl;
-            cout << "\t\tState: " << ref_offset << endl;
-        }
-
-        S_size += curr_phrase.len_e();
-
-        // Update variables for the next iteration
-        last_pos = curr_phrase.pos();
-        last_l = curr_phrase.len();
-        last_l_e = curr_phrase.len_e();
-    }
-    // For the last edit, do the same as we change to a new sample
-    factor_pos = rel_pos_chrom + ref_offset;
-    factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
-    AddFactor(factors, factor_pos, factor_len);
-    if (is_debug)
-    {
-        cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
-        cout << "\tState: " << ref_offset << endl;
-    }
-    S_size += factor_len;
-
-    n_S_i += 1;
-    UpdateSampleData(n_S_i, curr_phrase);
-    S_i_pos.push_back(S_size);
 
     Phrases_file.clear();
     Phrases_file.close();
-
     return S_size;
 }
+
+// Changed signature for testing, this is the old version, not new try
+// ll VCFParsingInterpreter::buildFactorFromVCFParserPhraseNEWTRY(vector<pair<unsigned int, unsigned int>> &factors)
+// {
+//     // Position variables: Offset checkpoints
+//     ll last_pos = 0, last_l = 0, last_l_e = 0;
+//     // Counter variables: S info
+//     vector<ll> S_i_pos;
+//     ll n_S_i = 0;
+
+//     // Helper variables: S construction
+//     ll ref_offset = 0, S_size = 0, factor_pos = 0, factor_len = 0, rel_pos_chrom = 0;
+//     // Helper variables: Phrase ID
+//     ll last_indv = -1, last_chrom = -1, last_alele = -1;
+//     bool is_same_sample = false;
+
+//     // PRINT
+//     bool is_debug = false;
+
+//     // Helpers
+//     phrase buffer;
+//     phrase curr_phrase;
+
+//     // Initialization
+//     Phrases_file.open(Phrases_file_path, BINARY_FILE);
+//     Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+//     // curr_phrase = buffer;
+
+//     if (is_debug)
+//     {
+//         cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|"
+//              << curr_phrase.len() << "|" << curr_phrase.edit() << "|" << curr_phrase.pos_e() << "|" << curr_phrase.len_e() << endl;
+//         cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+//     }
+
+//     last_indv = curr_phrase.indv();
+//     last_chrom = curr_phrase.chrom();
+//     last_alele = curr_phrase.alele();
+//     rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
+
+//     if (curr_phrase.pos() != 0)
+//     {
+//         // If the first phrase edit doesnt occurr in the first base
+//         // we need to induce a completition factor
+//         factor_pos = rel_pos_chrom;
+//         factor_len = curr_phrase.pos() - 1;
+//         AddFactor(factors, factor_pos, factor_len);
+//         ref_offset += factor_len;
+//         S_size += factor_len;
+
+//         if (is_debug)
+//         {
+//             cout << " Init: (" << factor_pos << "," << factor_len << ")->" << endl;
+//         }
+//     }
+//     // And now create the factor associated to the current phrase
+//     AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
+//     S_size += curr_phrase.len_e();
+
+//     if (is_debug)
+//     {
+//         cout << " Actu: (" << curr_phrase.pos_e() << "," << curr_phrase.len_e() << ")" << endl;
+//     }
+
+//     // Update with current values
+//     last_pos = curr_phrase.pos();
+//     last_l = curr_phrase.len();
+//     last_l_e = curr_phrase.len_e();
+//     rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
+
+//     n_S_i += 1;
+//     UpdateSampleData(n_S_i, curr_phrase);
+//     S_i_pos.push_back(S_size);
+
+//     for (ll i = 1; i < n_Phrases; i++)
+//     {
+//         // For each phrase
+//         Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+//         // curr_phrase = buffer;
+//         is_same_sample = (last_indv == curr_phrase.indv() &&
+//                           last_chrom == curr_phrase.chrom() &&
+//                           last_alele == curr_phrase.alele());
+//         if (is_debug)
+//         {
+//             cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|"
+//                  << curr_phrase.len() << "|" << curr_phrase.edit() << "|" << curr_phrase.pos_e() << "|" << curr_phrase.len_e() << endl;
+//             cout << "State: " << last_pos << "," << last_l << "," << last_l_e << endl;
+//         }
+
+//         // Discard slice not required from the previous phrase and go to the next position
+//         //  We only wont do it if there are multiple edits over the same position (sequence)
+//         if (!(is_same_sample && (last_pos == curr_phrase.pos())))
+//         {
+//             ref_offset += last_l + 1;
+//         }
+
+//         // If the current sample changes
+//         if (!is_same_sample)
+//         {
+//             // Create an end completition factor for the last sample
+//             factor_pos = rel_pos_chrom + ref_offset;
+//             factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
+//             AddFactor(factors, factor_pos, factor_len);
+
+//             S_size += factor_len;
+
+//             // Fill data info
+//             n_S_i += 1;
+//             UpdateSampleData(n_S_i, curr_phrase);
+//             S_i_pos.push_back(S_size);
+
+//             if (is_debug)
+//             {
+//                 cout << " ECmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+//                 cout << "\tState: " << ref_offset << endl;
+//             }
+
+//             // If we skip one alele, we need to induce it
+//             // We skip first alele of the new chromosome
+//             if (last_alele == 1 && curr_phrase.alele() == 1)
+//             {
+//                 factor_pos = dict_metareference[curr_phrase.chrom()].rel_pos();
+//                 factor_len = dict_metareference[curr_phrase.chrom()].n_bases() - 1;
+//                 AddFactor(factors, factor_pos, factor_len);
+//                 S_size += factor_len;
+
+//                 if (is_debug)
+//                 {
+//                     cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+//                 }
+//             }
+//             // Or we skip the second alele of the last chromosome
+//             else if (last_alele == 0 && curr_phrase.alele() == 0)
+//             {
+//                 factor_pos = dict_metareference[last_chrom].rel_pos();
+//                 factor_len = dict_metareference[last_chrom].n_bases() - 1;
+//                 AddFactor(factors, factor_pos, factor_len);
+//                 S_size += factor_len;
+
+//                 if (is_debug)
+//                 {
+//                     cout << " Indc: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+//                 }
+//             }
+
+//             // Update positon checkpoint variables
+//             last_pos = 0;
+//             last_l = 0;
+//             last_l_e = 0;
+//             ref_offset = 0;
+
+//             // Update ID variables
+//             last_indv = curr_phrase.indv();
+//             last_chrom = curr_phrase.chrom();
+//             last_alele = curr_phrase.alele();
+//             rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
+
+//             // Then create anothe completition factor for the start
+//             factor_pos = rel_pos_chrom + ref_offset;
+//             factor_len = curr_phrase.pos() - 1;
+//             AddFactor(factors, factor_pos, factor_len);
+
+//             if (is_debug)
+//             {
+//                 cout << " ICmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+//                 cout << "\tState: " << ref_offset << endl;
+//             }
+
+//             ref_offset += factor_len;
+//             S_size += factor_len;
+//         }
+//         else
+//         {
+//             // Just create a completition factor if it required
+//             if (curr_phrase.pos() - last_pos > 1)
+//             {
+//                 factor_pos = rel_pos_chrom + ref_offset;
+//                 factor_len = (curr_phrase.pos() - 1) - ref_offset;
+//                 AddFactor(factors, factor_pos, factor_len);
+//                 if (is_debug)
+//                 {
+//                     cout << " MCmp: ->(" << factor_pos << "," << factor_len << ")->" << endl;
+//                     cout << "\tState: " << ref_offset << endl;
+//                 }
+//                 ref_offset += factor_len;
+//                 S_size += factor_len;
+//             }
+//         }
+//         // Then create the actual factor
+//         AddFactor(factors, curr_phrase.pos_e(), curr_phrase.len_e());
+//         if (is_debug)
+//         {
+//             cout << "\t Actu: (" << curr_phrase.pos_e() << "," << curr_phrase.len_e() << ")" << endl;
+//             cout << "\t\tState: " << ref_offset << endl;
+//         }
+
+//         S_size += curr_phrase.len_e();
+
+//         // Update variables for the next iteration
+//         last_pos = curr_phrase.pos();
+//         last_l = curr_phrase.len();
+//         last_l_e = curr_phrase.len_e();
+//     }
+//     // For the last edit, do the same as we change to a new sample
+//     factor_pos = rel_pos_chrom + ref_offset;
+//     factor_len = dict_metareference[last_chrom].n_bases() - (ref_offset + 1);
+//     AddFactor(factors, factor_pos, factor_len);
+//     if (is_debug)
+//     {
+//         cout << " Last: ->(" << factor_pos << "," << factor_len << ")" << endl;
+//         cout << "\tState: " << ref_offset << endl;
+//     }
+//     S_size += factor_len;
+
+//     n_S_i += 1;
+//     UpdateSampleData(n_S_i, curr_phrase);
+//     S_i_pos.push_back(S_size);
+
+//     Phrases_file.clear();
+//     Phrases_file.close();
+
+//     return S_size;
+// }
 
 pair<const char *, ll> VCFParsingInterpreter::GetReference()
 {
