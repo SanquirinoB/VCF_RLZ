@@ -72,7 +72,7 @@ private:
     void ProcessPhrases();
 
     void UpdateSampleData(ll index, phrase data);
-    void AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len);
+    void HigienicPushBack(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor);
 
     bool PhraseIsValidInit(phrase curr);
     bool NeedsToFullFill(phrase ref, phrase curr);

@@ -92,10 +92,11 @@ void VCFParsingInterpreter::UpdateSampleData(ll index, phrase data)
 //     factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
 // }
 
-// void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor)
-// {
-//     factors.push_back(factor);
-// }
+void VCFParsingInterpreter::HigienicPushBack(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor)
+{
+    if (factor.second > 0)
+        factors.push_back(factor);
+}
 
 bool VCFParsingInterpreter::PhraseIsValidInit(phrase curr)
 {
@@ -172,29 +173,50 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
         else if (curr_is_dummy)
         {
             // We need to induce an end factor, closing the current alele
-            aux_factor = CalculateAleleInitFactor(last_phrase);
+            aux_factor = CalculateAleleEndFactor(last_phrase);
         }
         else
         {
             // Induce a factor which ignore the discarded section of lp and continue to curr pos
             aux_factor = CalculateAleleInterFactor(last_phrase, curr_phrase);
         }
-        factors.push_back(aux_factor);
+        HigienicPushBack(factors, aux_factor);
     }
     else if (ChangeInSameIndvChromDiffAlele(last_phrase, curr_phrase))
     {
+        if (last_is_dummy)
+        {
+            // We need to induce the full factor for the first alele
+            aux_factor = CalculateFullAleleFactor(last_phrase.chrom());
+            HigienicPushBack(factors, aux_factor);
+            // Then induce the init factor for the current alele
+            aux_factor = CalculateAleleInitFactor(curr_phrase);
+            HigienicPushBack(factors, aux_factor);
         }
+        else if (curr_is_dummy)
+        {
+            // We need to induce an end factor, closing the last alele
+            aux_factor = CalculateAleleEndFactor(last_phrase);
+            HigienicPushBack(factors, aux_factor);
+            // We need to induce the full factor for the curr and last alele
+            aux_factor = CalculateFullAleleFactor(last_phrase.chrom());
+            HigienicPushBack(factors, aux_factor);
+        }
+        else
+        {
+            // We need to induce an end factor, closing the last alele
+            aux_factor = CalculateAleleEndFactor(last_phrase);
+            HigienicPushBack(factors, aux_factor);
+            // We need to induce the init factor for the current alele
+            aux_factor = CalculateAleleInitFactor(curr_phrase);
+            HigienicPushBack(factors, aux_factor);
+        }
+    }
     else if (ChangeInSameIndvDiffChrom(last_phrase, curr_phrase))
     {
-        // First we have to end our current chromosome
-        if (last_phrase.alele() == 0)
-        {
-            // Induce an end chromosome
-        }
     }
     else if (ChangeInDiffIndv(last_phrase, curr_phrase))
     {
-        /* code */
     }
 }
 
