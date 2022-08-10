@@ -161,6 +161,9 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor
 void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy)
 {
     // Consideration, we asume for now all chromosomes are diploid
+    // Tecnically we dont properly process X and Y chromosomes, we will treat them as any other chromosome
+    //  See https://www.biostars.org/p/59419/ , i dont have time for implement this handling or even understand it
+    // TODO: Induce checkopoints over samples
     pair<unsigned int, unsigned int> aux_factor;
 
     if (ChangeInSameIndvChromAlele(last_phrase, curr_phrase))
@@ -214,6 +217,29 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
     }
     else if (ChangeInSameIndvDiffChrom(last_phrase, curr_phrase))
     {
+        int actual_chrom, actual_alele;
+        if (last_is_dummy)
+        {
+            actual_chrom = last_phrase.chrom();
+            actual_alele = last_phrase.alele();
+            // Full fill until reach the actual chrom and alele
+            while (actual_chrom != curr_phrase.chrom() && actual_alele != curr_phrase.alele())
+            {
+                aux_factor = CalculateFullAleleFactor(actual_chrom);
+                HigienicPushBack(factors, aux_factor);
+                if (actual_alele == 1)
+                {
+                    actual_chrom++;
+                }
+                else
+                {
+                    actual_alele++;
+                }
+            }
+            // Then induce an init factor for current phrase
+            aux_factor = CalculateAleleInitFactor(curr_phrase);
+            HigienicPushBack(factors, aux_factor);
+        }
     }
     else if (ChangeInDiffIndv(last_phrase, curr_phrase))
     {
