@@ -268,6 +268,74 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
     }
     else if (ChangeInDiffIndv(last_phrase, curr_phrase))
     {
+        int actual_indv, actual_chrom, actual_alele;
+        actual_indv = last_phrase.indv();
+        actual_chrom = last_phrase.chrom();
+        actual_alele = last_phrase.alele();
+
+        if (!last_is_dummy)
+        {
+            // First induce an end fill
+            aux_factor = CalculateAleleEndFactor(last_phrase);
+            HigienicPushBack(factors, aux_factor);
+            if (actual_alele == 1)
+            {
+                actual_chrom++;
+                actual_alele--;
+            }
+            else
+            {
+                actual_alele++;
+            }
+        }
+
+        // Full fill until reach the actual indv, chrom and alele
+        while (actual_chrom != curr_phrase.chrom() && actual_alele != curr_phrase.alele())
+        {
+            aux_factor = CalculateFullAleleFactor(actual_chrom);
+            HigienicPushBack(factors, aux_factor);
+            // If reach alele limit
+            if (actual_alele == 1)
+            {
+                // If reach chrom limit
+                if (actual_chrom == n_chromosomes)
+                {
+                    // Move to next indv
+                    actual_indv++;
+                    // Reset chromosome
+                    actual_chrom = 1;
+                }
+                else
+                {
+                    // Move to next chromosome
+                    actual_chrom++;
+                }
+                // Reset alele
+                actual_alele--;
+            }
+            else
+            {
+                // Move to next alele
+                actual_alele++;
+            }
+        }
+
+        if (curr_is_dummy)
+        {
+            // Just complete the last alele
+            aux_factor = CalculateFullAleleFactor(actual_chrom);
+            HigienicPushBack(factors, aux_factor);
+        }
+        else
+        {
+            // Then induce an init factor for current phrase
+            aux_factor = CalculateAleleInitFactor(curr_phrase);
+            HigienicPushBack(factors, aux_factor);
+        }
+    }
+    else
+    {
+        cout << "Oh no, this is not supposed to happen" << endl;
     }
 }
 
