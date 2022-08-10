@@ -218,24 +218,49 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
     else if (ChangeInSameIndvDiffChrom(last_phrase, curr_phrase))
     {
         int actual_chrom, actual_alele;
-        if (last_is_dummy)
+        actual_chrom = last_phrase.chrom();
+        actual_alele = last_phrase.alele();
+
+        if (!last_is_dummy)
         {
-            actual_chrom = last_phrase.chrom();
-            actual_alele = last_phrase.alele();
-            // Full fill until reach the actual chrom and alele
-            while (actual_chrom != curr_phrase.chrom() && actual_alele != curr_phrase.alele())
+            // First induce an end fill
+            aux_factor = CalculateAleleEndFactor(last_phrase);
+            HigienicPushBack(factors, aux_factor);
+            if (actual_alele == 1)
             {
-                aux_factor = CalculateFullAleleFactor(actual_chrom);
-                HigienicPushBack(factors, aux_factor);
-                if (actual_alele == 1)
-                {
-                    actual_chrom++;
-                }
-                else
-                {
-                    actual_alele++;
-                }
+                actual_chrom++;
+                actual_alele--;
             }
+            else
+            {
+                actual_alele++;
+            }
+        }
+
+        // Full fill until reach the actual chrom and alele
+        while (actual_chrom != curr_phrase.chrom() && actual_alele != curr_phrase.alele())
+        {
+            aux_factor = CalculateFullAleleFactor(actual_chrom);
+            HigienicPushBack(factors, aux_factor);
+            if (actual_alele == 1)
+            {
+                actual_chrom++;
+                actual_alele--;
+            }
+            else
+            {
+                actual_alele++;
+            }
+        }
+
+        if (curr_is_dummy)
+        {
+            // Just complete the last alele
+            aux_factor = CalculateFullAleleFactor(actual_chrom);
+            HigienicPushBack(factors, aux_factor);
+        }
+        else
+        {
             // Then induce an init factor for current phrase
             aux_factor = CalculateAleleInitFactor(curr_phrase);
             HigienicPushBack(factors, aux_factor);
