@@ -76,6 +76,8 @@ void VCFParsingInterpreter::ProcessMetaParsing()
     n_Phrases = metainfo_buffer.n_phrases();
     MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_Samples = metainfo_buffer.n_phrases();
+    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
+    n_chromosomes = metainfo_buffer.n_phrases();
     MetaParsing_file.close();
     MetaParsing_file.close();
 }
@@ -85,10 +87,15 @@ void VCFParsingInterpreter::UpdateSampleData(ll index, phrase data)
     dict_samples[index] = sampleID(data.indv(), data.chrom(), data.alele());
 }
 
-void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len)
-{
-    factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
-}
+// void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &factors, ll pos, ll len)
+// {
+//     factors.push_back(make_pair((unsigned int)pos, (unsigned int)len));
+// }
+
+// void VCFParsingInterpreter::AddFactor(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor)
+// {
+//     factors.push_back(factor);
+// }
 
 bool VCFParsingInterpreter::PhraseIsValidInit(phrase curr)
 {
@@ -126,21 +133,64 @@ bool VCFParsingInterpreter::ChangeInDiffIndv(phrase ref, phrase curr)
     return ref.indv() != curr.indv();
 }
 
+pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor(phrase Phrase)
+{
+    return make_pair(rel_pos_chrom,     // Init position of current reference chromosome
+                     Phrase.pos() - 1); // Copy until reach the actual position
+}
+
+pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2)
+{
+    return make_pair(rel_pos_chrom + Phrase1.pos() + Phrase1.len(),          // Start after the discarded slice of Phrase1
+                     (Phrase2.pos() - 1) - (Phrase1.pos() + Phrase1.len())); // Fill until reach pos of Phrase2
+}
+
+pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(phrase Phrase)
+{
+    return make_pair(rel_pos_chrom + Phrase.pos() + Phrase.len(),                                   // Start after the discarded slice of Phrase
+                     dict_metareference[Phrase.chrom()].n_bases() - (Phrase.pos() + Phrase.len())); // Fill until reach the end of the current chromosome-alele
+}
+
+pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor(ll chromosome)
+{
+    return make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
+                     dict_metareference[chromosome].n_bases() - 1); // Fill until reach the end of the current chromosome-alele
+}
+
 void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy)
 {
-    ll factor_pos = 0, factor_len = 0;
+    // Consideration, we asume for now all chromosomes are diploid
+    pair<unsigned int, unsigned int> aux_factor;
 
     if (ChangeInSameIndvChromAlele(last_phrase, curr_phrase))
     {
-        /* code */
+        if (last_is_dummy)
+        {
+            // We need to induce the init factor (0, distanceToCurrPos)
+            aux_factor = CalculateAleleInitFactor(curr_phrase);
+        }
+        else if (curr_is_dummy)
+        {
+            // We need to induce an end factor, closing the current alele
+            aux_factor = CalculateAleleInitFactor(last_phrase);
+        }
+        else
+        {
+            // Induce a factor which ignore the discarded section of lp and continue to curr pos
+            aux_factor = CalculateAleleInterFactor(last_phrase, curr_phrase);
+        }
+        factors.push_back(aux_factor);
     }
     else if (ChangeInSameIndvChromDiffAlele(last_phrase, curr_phrase))
     {
-        /* code */
-    }
+        }
     else if (ChangeInSameIndvDiffChrom(last_phrase, curr_phrase))
     {
-        /* code */
+        // First we have to end our current chromosome
+        if (last_phrase.alele() == 0)
+        {
+            // Induce an end chromosome
+        }
     }
     else if (ChangeInDiffIndv(last_phrase, curr_phrase))
     {

@@ -46,6 +46,7 @@ private:
     // Parsing related
     ll n_Phrases;
     int n_Samples;
+    int n_chromosomes;
     vector_type Phrases;
 
     // Actual S related
@@ -79,6 +80,11 @@ private:
     bool ChangeInSameIndvChromDiffAlele(phrase ref, phrase curr);
     bool ChangeInSameIndvDiffChrom(phrase ref, phrase curr);
     bool ChangeInDiffIndv(phrase ref, phrase curr);
+
+    pair<unsigned int, unsigned int> CalculateAleleInitFactor(phrase Phrase);
+    pair<unsigned int, unsigned int> CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2);
+    pair<unsigned int, unsigned int> CalculateAleleEndFactor(phrase Phrase);
+    pair<unsigned int, unsigned int> CalculateFullAleleFactor(ll chromosome);
 
     void InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
 
