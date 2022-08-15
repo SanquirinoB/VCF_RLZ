@@ -52,6 +52,8 @@ private:
     // Actual S related
     ll S_size;
     ll n_S_i;
+    // Vector with checkpoints of sample position start inside S
+    vector<ll> S_i_pos;
     ll ref_offset;
     ll rel_pos_chrom;
 
