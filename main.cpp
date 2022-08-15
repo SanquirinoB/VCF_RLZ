@@ -73,6 +73,8 @@ int main(int argc, char **argv)
     cout << "[RLZ] Start sorting process..." << endl;
     // FIN PROCESO DE PARSING VIA PYTHON
     Sorter.StartProcess(argv);
+    cout << "[RLZ] Sorting process finished!" << endl;
+
 
     VCFParsingInterpreter Interpreter(argv[1]);
     Interpreter.Initialize();
@@ -85,11 +87,11 @@ int main(int argc, char **argv)
     vector<pair<unsigned int, unsigned int>> factors;
     ll s_size = Interpreter.buildFactorFromVCFParserPhrase(factors);
 
-    cout << reference << endl;
-    for (int i = 0; i < factors.size(); i++)
-    {
-        cout << "(" << factors[i].first << "," << factors[i].second << ")" << endl;
-    }
+    // cout << reference << endl;
+    // for (int i = 0; i < factors.size(); i++)
+    // {
+    //     cout << "(" << factors[i].first << "," << factors[i].second << ")" << endl;
+    // }
 
     cout << "----- Building index -----\n";
     timer.reset();
