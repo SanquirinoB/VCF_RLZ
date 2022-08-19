@@ -10,8 +10,11 @@
 #include <map>
 #include <relz/NanoTimer.h>
 #include <VCFCommon.h>
+#include <sdsl/bit_vectors.hpp>
+#include <iostream>
 
 using namespace std;
+using namespace sdsl;
 
 class VCFParsingInterpreter
 {
@@ -56,6 +59,11 @@ private:
     vector<ll> S_i_pos;
     ll ref_offset;
     ll rel_pos_chrom;
+
+    // Reconstruction structures
+    rrr_vector<127> bit_vector_S_i;
+    rrr_vector<127>::rank_1_type rank_S_i;
+    rrr_vector<127>::select_1_type select_S_i;
 
 public:
     VCFParsingInterpreter(char *destination_path);

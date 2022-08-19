@@ -1,5 +1,3 @@
-#include <sdsl/bit_vectors.hpp>
-#include <iostream>
 #include "VCFParsingInterpreter.h"
 
 using namespace std;
@@ -120,7 +118,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2)
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase1.pos() + Phrase1.len(),          // Start after the discarded slice of Phrase1
-                     (Phrase2.pos() - 1) - (Phrase1.pos() + Phrase1.len()) - 1); // Fill until reach pos of Phrase2
+                     (Phrase2.pos() - 1) - (Phrase1.pos() + Phrase1.len())); // Fill until reach pos of Phrase2
     cout << "(" << aux.first << "," << aux.second << ") : inter" << endl;
     return aux;
 }
@@ -136,7 +134,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor(ll chromosome)
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
-                     dict_metareference[chromosome].n_bases() - 1); // Fill until reach the end of the current chromosome-alele
+                     dict_metareference[chromosome].n_bases()); // Fill until reach the end of the current chromosome-alele
     cout << "(" << aux.first << "," << aux.second << ") : full" << endl;
     return aux;
 }
@@ -157,6 +155,7 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
         {
             // We need to induce the init factor (0, distanceToCurrPos)
             aux_factor = CalculateAleleInitFactor(curr_phrase);
+            S_i_pos.push_back(S_size);
         }
         else if (curr_is_dummy)
         {
@@ -169,10 +168,6 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             aux_factor = CalculateAleleInterFactor(last_phrase, curr_phrase);
         }
         HigienicPushBack(factors, aux_factor);
-        if (curr_is_dummy)
-        {
-            S_i_pos.push_back(S_size);
-        }
         
     }
     else if (ChangeInSameIndvChromDiffAlele(last_phrase, curr_phrase))
@@ -181,10 +176,11 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
         {
             // We need to induce the full factor for the first alele
             aux_factor = CalculateFullAleleFactor(last_phrase.chrom());
-            HigienicPushBack(factors, aux_factor);
             S_i_pos.push_back(S_size);
+            HigienicPushBack(factors, aux_factor);
             // Then induce the init factor for the current alele
             aux_factor = CalculateAleleInitFactor(curr_phrase);
+            S_i_pos.push_back(S_size);
             HigienicPushBack(factors, aux_factor);
         }
         else if (curr_is_dummy)
@@ -192,20 +188,19 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             // We need to induce an end factor, closing the last alele
             aux_factor = CalculateAleleEndFactor(last_phrase);
             HigienicPushBack(factors, aux_factor);
-            S_i_pos.push_back(S_size);
             // We need to induce the full factor for the curr and last alele
             aux_factor = CalculateFullAleleFactor(last_phrase.chrom());
-            HigienicPushBack(factors, aux_factor);
             S_i_pos.push_back(S_size);
+            HigienicPushBack(factors, aux_factor);
         }
         else
         {
             // We need to induce an end factor, closing the last alele
             aux_factor = CalculateAleleEndFactor(last_phrase);
             HigienicPushBack(factors, aux_factor);
-            S_i_pos.push_back(S_size);
             // We need to induce the init factor for the current alele
             aux_factor = CalculateAleleInitFactor(curr_phrase);
+            S_i_pos.push_back(S_size);
             HigienicPushBack(factors, aux_factor);
         }
     }
@@ -220,7 +215,6 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             // First induce an end fill
             aux_factor = CalculateAleleEndFactor(last_phrase);
             HigienicPushBack(factors, aux_factor);
-            S_i_pos.push_back(S_size);
             if (actual_alele == 1)
             {
                 actual_chrom++;
@@ -236,8 +230,8 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
         while (!(actual_chrom == curr_phrase.chrom() && actual_alele == curr_phrase.alele()))
         {
             aux_factor = CalculateFullAleleFactor(actual_chrom);
-            HigienicPushBack(factors, aux_factor);
             S_i_pos.push_back(S_size);
+            HigienicPushBack(factors, aux_factor);
             if (actual_alele == 1)
             {
                 actual_chrom++;
@@ -259,11 +253,8 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             // Then induce an init factor for current phrase
             aux_factor = CalculateAleleInitFactor(curr_phrase);
         }
+        S_i_pos.push_back(S_size);
         HigienicPushBack(factors, aux_factor);
-        if (curr_is_dummy)
-        {
-            S_i_pos.push_back(S_size);
-        }
         
     }
     else if (ChangeInDiffIndv(last_phrase, curr_phrase))
@@ -278,7 +269,6 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             // First induce an end fill
             aux_factor = CalculateAleleEndFactor(last_phrase);
             HigienicPushBack(factors, aux_factor);
-            S_i_pos.push_back(S_size);
 
             if (actual_alele == 1)
             {
@@ -308,8 +298,8 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
         while (!(actual_indv == curr_phrase.indv() && actual_chrom == curr_phrase.chrom() && actual_alele == curr_phrase.alele()))
         {
             aux_factor = CalculateFullAleleFactor(actual_chrom);
-            HigienicPushBack(factors, aux_factor);
             S_i_pos.push_back(S_size);
+            HigienicPushBack(factors, aux_factor);
             // If reach alele limit
             if (actual_alele == 1)
             {
@@ -347,11 +337,9 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
             aux_factor = CalculateAleleInitFactor(curr_phrase);
         }
         
+        S_i_pos.push_back(S_size);
         HigienicPushBack(factors, aux_factor);
-        if (curr_is_dummy)
-        {
-            S_i_pos.push_back(S_size);
-        }
+
     }
     else
     {
@@ -364,29 +352,19 @@ void VCFParsingInterpreter::BuildReconstructionStructures()
     bit_vector b(S_size, 0);
     for (ll i = 0; i < S_i_pos.size(); i++)
     {
-        b[S_i_pos[i] - 1] = 1;
+        b[S_i_pos[i]] = 1;
     }
-    rank_support_v<> rb(&b);
-
-    cout<<rb(226)<<endl;
-    cout<<rb(500)<<endl;
-    cout<<rb(700)<<endl;
-
-    cout<< "size of b in MB: " << size_in_mega_bytes(b)<< endl;
-    cout<< "size of rb in MB: " << size_in_mega_bytes(rb)<< endl;
-
     rrr_vector<127> rrrb(b);
-    rrr_vector<127>::rank_1_type rank_rrrb(&rrrb);
+    bit_vector_S_i = rrrb;
 
-    cout<<rank_rrrb(200)<<endl;
-    cout<<rank_rrrb(500)<<endl;
-    cout<<rank_rrrb(700)<<endl;
+    rrr_vector<127>::rank_1_type aux_rank(&bit_vector_S_i);
+    rrr_vector<127>::select_1_type aux_select(&bit_vector_S_i);
 
-    cout<< "size of rrrb in MB: " << size_in_mega_bytes(rrrb)<< endl;
-    cout<< "size of rank_rrrb in MB: " << size_in_mega_bytes(rank_rrrb)<< endl;
+    rank_S_i = aux_rank;
+    select_S_i = aux_select;
 
-    rrr_vector<127>::select_1_type select_rrrb(&rrrb);
-    cout<<"position of first one in b: "<<select_rrrb(1)<<endl;
+    cout<<"position of first one in b: "<<select_S_i(1)<<endl;
+    cout<<"position of second one in b: "<<select_S_i(2)<<endl;
 }
 
 ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
