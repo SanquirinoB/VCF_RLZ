@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     timer.reset();
     RelzIndexReference index(factors, reference, s_size + 1, reference, reference_size + 1);
     cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
-
+    cout << sizeof(Interpreter) << endl;
     return 0;
 }
 

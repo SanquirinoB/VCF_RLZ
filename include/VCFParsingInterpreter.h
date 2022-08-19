@@ -87,6 +87,8 @@ private:
     pair<unsigned int, unsigned int> CalculateAleleEndFactor(phrase Phrase);
     pair<unsigned int, unsigned int> CalculateFullAleleFactor(ll chromosome);
 
+    void BuildReconstructionStructures();
+
     void InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
 
     void PrintState(phrase curr_phrase, ll last_pos, ll last_l, ll last_l_e);
