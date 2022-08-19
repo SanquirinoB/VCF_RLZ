@@ -361,7 +361,32 @@ void VCFParsingInterpreter::InduceFillFactors(vector<pair<unsigned int, unsigned
 
 void VCFParsingInterpreter::BuildReconstructionStructures()
 {
-    
+    bit_vector b(S_size, 0);
+    for (ll i = 0; i < S_i_pos.size(); i++)
+    {
+        b[S_i_pos[i] - 1] = 1;
+    }
+    rank_support_v<> rb(&b);
+
+    cout<<rb(226)<<endl;
+    cout<<rb(500)<<endl;
+    cout<<rb(700)<<endl;
+
+    cout<< "size of b in MB: " << size_in_mega_bytes(b)<< endl;
+    cout<< "size of rb in MB: " << size_in_mega_bytes(rb)<< endl;
+
+    rrr_vector<127> rrrb(b);
+    rrr_vector<127>::rank_1_type rank_rrrb(&rrrb);
+
+    cout<<rank_rrrb(200)<<endl;
+    cout<<rank_rrrb(500)<<endl;
+    cout<<rank_rrrb(700)<<endl;
+
+    cout<< "size of rrrb in MB: " << size_in_mega_bytes(rrrb)<< endl;
+    cout<< "size of rank_rrrb in MB: " << size_in_mega_bytes(rank_rrrb)<< endl;
+
+    rrr_vector<127>::select_1_type select_rrrb(&rrrb);
+    cout<<"position of first one in b: "<<select_rrrb(1)<<endl;
 }
 
 ll VCFParsingInterpreter::buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors)
