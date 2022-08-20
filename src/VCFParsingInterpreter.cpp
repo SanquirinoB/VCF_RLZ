@@ -28,7 +28,7 @@ void VCFParsingInterpreter::Initialize()
     char* reference = GetReference();
     NanoTimer timer;
     RelzIndexReference aux_index(factors, reference, S_size + 1, reference, Reference_len+ 1);
-    Index = aux_index;
+    Index = &aux_index;
     cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
 }
 
