@@ -3,10 +3,15 @@
 
 #include <stxxl/bits/common/types.h>
 #include <stxxl/vector>
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <cstdint>
 
 typedef long long ll; // 4 bytes
+using namespace std;
+
 
 struct metareference
 {
@@ -32,16 +37,16 @@ struct metainfo
 
 struct sampleID
 {
-    ll m_ID;
+    string m_ID;
     char m_chrom;
     char m_alele;
 
-    ll ID() const { return m_ID; }
+    string ID() const { return m_ID; }
     char chrom() const { return m_chrom; }
     char alele() const { return m_alele; }
 
     sampleID() {}
-    sampleID(ll ID, char chrom, char alele) : m_ID(ID), m_chrom(chrom), m_alele(alele) {}
+    sampleID(string ID, char chrom, char alele) : m_ID(ID), m_chrom(chrom), m_alele(alele) {}
 };
 
 struct phrase

@@ -20,16 +20,20 @@ VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
 
 void VCFParsingInterpreter::Initialize()
 {
+    cout << "[RLZ] Reading metadata" << endl;
+    NanoTimer timer;
     ProcessReference();
     ProcessMetaParsing();
+    cout << "[RLZ]      Metadata readed in " << timer.getMilisec() << " ms" << endl;
+    cout << "[RLZ] Building factors from phrases" << endl;
+    timer.reset();
     BuildFactors();
-
-    cout << "----- Building index -----\n";
+    cout << "[RLZ] Building index" << endl;
     char* reference = GetReference();
-    NanoTimer timer;
+    timer.reset();
     RelzIndexReference aux_index(factors, reference, S_size + 1, reference, Reference_len+ 1);
     Index = &aux_index;
-    cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
+    cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
 
 void VCFParsingInterpreter::ProcessReference()
@@ -73,11 +77,6 @@ void VCFParsingInterpreter::ProcessMetaParsing()
     MetaParsing_file.close();
 }
 
-void VCFParsingInterpreter::UpdateSampleData(ll index, phrase data)
-{
-    dict_samples[index] = sampleID(data.indv(), data.chrom(), data.alele());
-}
-
 void VCFParsingInterpreter::HigienicFactorPushBack(pair<unsigned int, unsigned int> factor)
 {
     if (factor.second > 0)
@@ -119,7 +118,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,     // Init position of current reference chromosome
                                                     Phrase.pos() - 1); // Copy until reach the actual position
-    cout << "(" << aux.first << "," << aux.second << ") : init" << endl;
+    // cout << "(" << aux.first << "," << aux.second << ") : init" << endl;
     return aux;
 }
 
@@ -127,7 +126,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFacto
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase1.pos() + Phrase1.len(),          // Start after the discarded slice of Phrase1
                      (Phrase2.pos() - 1) - (Phrase1.pos() + Phrase1.len())); // Fill until reach pos of Phrase2
-    cout << "(" << aux.first << "," << aux.second << ") : inter" << endl;
+    // cout << "(" << aux.first << "," << aux.second << ") : inter" << endl;
     return aux;
 }
 
@@ -135,7 +134,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase.pos() + Phrase.len(),                                   // Start after the discarded slice of Phrase
                      dict_metareference[Phrase.chrom()].n_bases() - (Phrase.pos() + Phrase.len())); // Fill until reach the end of the current chromosome-alele
-    cout << "(" << aux.first << "," << aux.second << ") : end" << endl;
+    // cout << "(" << aux.first << "," << aux.second << ") : end" << endl;
     return aux;
 }
 
@@ -143,7 +142,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor
 {
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
                      dict_metareference[chromosome].n_bases()); // Fill until reach the end of the current chromosome-alele
-    cout << "(" << aux.first << "," << aux.second << ") : full" << endl;
+    // cout << "(" << aux.first << "," << aux.second << ") : full" << endl;
     return aux;
 }
 
@@ -375,7 +374,7 @@ void VCFParsingInterpreter::BuildReconstructionStructures()
     cout<<"position of second one in b: "<<select_S_i(2)<<endl;
 }
 
-ll VCFParsingInterpreter::BuildFactors()
+void VCFParsingInterpreter::BuildFactors()
 {
     // Phrase buffer
     phrase curr_phrase;
@@ -413,7 +412,7 @@ ll VCFParsingInterpreter::BuildFactors()
         {
             // Add actual edit inside current phrase
             pair<unsigned int, unsigned int> aux = make_pair(curr_phrase.pos_e(), curr_phrase.len_e());
-            cout << "(" << aux.first << "," << aux.second << ") : actual" << endl;
+            // cout << "(" << aux.first << "," << aux.second << ") : actual" << endl;
             HigienicFactorPushBack(aux);
         }
         last_is_dummy = false;
@@ -427,38 +426,36 @@ ll VCFParsingInterpreter::BuildFactors()
     Phrases_file.close();
 
     int actual_indv = 0, actual_chrom = 0, actual_alele = 0;
-    for (int i = 0; i < S_i_pos.size(); i++)
-    {
-        cout << "(" << actual_indv << "," << actual_chrom << "," << actual_alele << "): " << S_i_pos[i] << endl;
-        // If reach alele limit
-        if (actual_alele == 1)
-        {
-            // If reach chrom limit
-            if (actual_chrom == n_chromosomes - 1)
-            {
-                // Move to next indv
-                actual_indv++;
-                // Reset chromosome
-                actual_chrom = 0;
-            }
-            else
-            {
-                // Move to next chromosome
-                actual_chrom++;
-            }
-            // Reset alele
-            actual_alele--;
-        }
-        else
-        {
-            // Move to next alele
-            actual_alele++;
-        }
-    }
+    // for (int i = 0; i < S_i_pos.size(); i++)
+    // {
+    //     cout << "(" << actual_indv << "," << actual_chrom << "," << actual_alele << "): " << S_i_pos[i] << endl;
+    //     // If reach alele limit
+    //     if (actual_alele == 1)
+    //     {
+    //         // If reach chrom limit
+    //         if (actual_chrom == n_chromosomes - 1)
+    //         {
+    //             // Move to next indv
+    //             actual_indv++;
+    //             // Reset chromosome
+    //             actual_chrom = 0;
+    //         }
+    //         else
+    //         {
+    //             // Move to next chromosome
+    //             actual_chrom++;
+    //         }
+    //         // Reset alele
+    //         actual_alele--;
+    //     }
+    //     else
+    //     {
+    //         // Move to next alele
+    //         actual_alele++;
+    //     }
+    // }
 
     BuildReconstructionStructures();
-    
-    return S_size;
 }
 
 char* VCFParsingInterpreter::GetReference()
@@ -479,4 +476,43 @@ char* VCFParsingInterpreter::GetReference()
     strcpy(reference, reference_const);
 
     return reference;
+}
+
+vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string snippet)
+{
+    vector<unsigned int> raw_positions;
+    vector<pair<sampleID, unsigned int>> result;
+    cout << "a" << endl;
+    Index->findTimes(snippet, raw_positions);
+    cout << "aa" << endl;
+    unsigned int n_chrom = (unsigned int) n_chromosomes;
+    unsigned int n_S_i_before, sample, chrom, alele, last_s_i;
+    string sample_name;
+
+    IDInfo_file.open(IDInfo_file_path);
+    cout << "aaa" << endl;
+
+
+    for(unsigned int raw_pos : raw_positions)
+    {
+        // primero buscamos cuantas muestras hay hasta esta posicion
+        n_S_i_before = (unsigned int)rank_S_i(raw_pos);
+        cout << "aaaa" << endl;
+        sample = n_S_i_before / (n_chrom * ploidy);
+        for (int i = 0; i < sample; i++)
+        {
+            getline(IDInfo_file, sample_name);
+        }
+        cout << "aaaaa" << endl;
+        chrom = (n_S_i % sample) / ploidy;
+        alele = n_S_i_before % ploidy;
+        cout << sample << "," << chrom << "," << alele << endl;
+
+        last_s_i = (unsigned int) select_S_i(n_S_i_before - 1);
+
+        result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - last_s_i));
+    }
+
+    IDInfo_file.close();
+    return result;
 }

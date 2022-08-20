@@ -1,11 +1,8 @@
 #ifndef _VCF_PARSING_INTERPRETER_H
 #define _VCF_PARSING_INTERPRETER_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <sstream>
 #include <fstream>
-#include <string.h>
 #include <vector>
 #include <map>
 #include <relz/NanoTimer.h>
@@ -51,6 +48,7 @@ private:
     ll n_Phrases;
     int n_Samples;
     int n_chromosomes;
+    unsigned int ploidy = 2;
     vector_type Phrases;
 
     // Actual S related
@@ -70,7 +68,7 @@ private:
 
 public:
     VCFParsingInterpreter(char *destination_path);
-
+    vector<pair<sampleID, unsigned int>> FindSnippet(string snippet);
     void Initialize();
 
 private:
@@ -81,10 +79,10 @@ private:
     void ProcessReference();
     void ProcessPhrases();
 
-    ll BuildFactors();
+    void BuildFactors();
     char* GetReference();
+    string GetSampleRealName(unsigned int internal_id);
 
-    void UpdateSampleData(ll index, phrase data);
     void HigienicFactorPushBack(pair<unsigned int, unsigned int> factor);
 
     bool PhraseIsValidInit(phrase curr);

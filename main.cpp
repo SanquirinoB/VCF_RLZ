@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <numeric>
-#include <string>
 #include <functional>
 #include <sstream>
 
@@ -79,6 +78,27 @@ int main(int argc, char **argv)
     VCFParsingInterpreter Interpreter(argv[1]);
     Interpreter.Initialize();
     
+    string response;
+    while(response != "2")
+    {
+        cout << "Puedes ejecutar las siguientes acciones:\n\t(1) Buscar un snippet\n\t(2) Salir" << endl;
+        cout << "Ingresa el nro de tu opción:" << endl;
+        cin >> response;
+        if (response == "1")
+        {
+            cout << "Ingrese el snippet a consultar:" << endl;
+            cin >> response;
+            vector<pair<sampleID, unsigned int>> result = Interpreter.FindSnippet(response);
+            cout << "El snippet ocurre en los siguientes lugares:" << endl;
+            for (pair<sampleID, unsigned int> info:result)
+            {
+                cout << "\t- Muestra " << info.first.ID() << ", cromosoma " << info.first.chrom() <<
+                        ", alelo " << info.first.alele() << " y posición " << info.second << endl;
+            }
+            
+        }
+        
+    }
     return 0;
 }
 

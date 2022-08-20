@@ -47,7 +47,7 @@ void VCFParsingSorter::StartProcess(char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
 
-    cout << "[RLZ] Unsorted state sample:" << endl;
+    // cout << "[RLZ] Unsorted state sample:" << endl;
     // cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << endl;
     // for (int i = 0; i < 10; i++)
     // {
@@ -65,14 +65,14 @@ void VCFParsingSorter::StartProcess(char **argv)
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
 
-    cout << "[RLZ] Sorted state sample:" << endl;
-    cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << endl;
-    for (int i = 0; i < 10; i++)
-    {
-        p1 = v[i];
-        cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
-             << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << "|" << p1.len_e() << endl;
-    }
+    // cout << "[RLZ] Sorted state sample:" << endl;
+    // cout << "\tIndv|Chrom|Alele|Pos|Len|Edit|Pos_E|Len_E" << endl;
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     p1 = v[i];
+    //     cout << "\t" << p1.indv() << "|" << p1.chrom() << "|" << p1.alele() << "|" << p1.pos() << "|"
+    //          << p1.len() << "|" << p1.edit() << "|" << p1.pos_e() << "|" << p1.len_e() << endl;
+    // }
 
     ofstream sorted_phrases;
     sorted_phrases.open(name_parsing_sorted, ofstream::out | ofstream::binary);
