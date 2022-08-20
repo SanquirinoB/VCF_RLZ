@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include <relz/NanoTimer.h>
+#include <relz/RelzIndexReference.h>
 #include <VCFCommon.h>
 #include <sdsl/bit_vectors.hpp>
 #include <iostream>
@@ -57,10 +58,12 @@ private:
     ll n_S_i;
     // Vector with checkpoints of sample position start inside S
     vector<ll> S_i_pos;
+    vector<pair<unsigned int, unsigned int>> factors;
     ll ref_offset;
     ll rel_pos_chrom;
 
     // Reconstruction structures
+    RelzIndexReference Index;
     rrr_vector<127> bit_vector_S_i;
     rrr_vector<127>::rank_1_type rank_S_i;
     rrr_vector<127>::select_1_type select_S_i;
@@ -69,8 +72,6 @@ public:
     VCFParsingInterpreter(char *destination_path);
 
     void Initialize();
-    ll buildFactorFromVCFParserPhrase(vector<pair<unsigned int, unsigned int>> &factors);
-    pair<const char *, ll> GetReference();
 
 private:
     // Consume files
@@ -80,8 +81,11 @@ private:
     void ProcessReference();
     void ProcessPhrases();
 
+    ll BuildFactors();
+    char* GetReference();
+
     void UpdateSampleData(ll index, phrase data);
-    void HigienicPushBack(vector<pair<unsigned int, unsigned int>> &factors, pair<unsigned int, unsigned int> factor);
+    void HigienicFactorPushBack(pair<unsigned int, unsigned int> factor);
 
     bool PhraseIsValidInit(phrase curr);
     bool NeedsToFullFill(phrase ref, phrase curr);
@@ -97,7 +101,7 @@ private:
 
     void BuildReconstructionStructures();
 
-    void InduceFillFactors(vector<pair<unsigned int, unsigned int>> &factors, phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
+    void InduceFillFactors(phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
 
     void PrintState(phrase curr_phrase, ll last_pos, ll last_l, ll last_l_e);
 };

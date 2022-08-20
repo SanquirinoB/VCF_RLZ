@@ -78,26 +78,7 @@ int main(int argc, char **argv)
 
     VCFParsingInterpreter Interpreter(argv[1]);
     Interpreter.Initialize();
-    pair<const char *, ll> ref_data = Interpreter.GetReference();
-
-    ll reference_size = ref_data.second;
-    char *reference = new char[reference_size + 1];
-    strcpy(reference, ref_data.first);
-
-    vector<pair<unsigned int, unsigned int>> factors;
-    ll s_size = Interpreter.buildFactorFromVCFParserPhrase(factors);
-
-    // cout << reference << endl;
-    // for (int i = 0; i < factors.size(); i++)
-    // {
-    //     cout << "(" << factors[i].first << "," << factors[i].second << ")" << endl;
-    // }
-
-    cout << "----- Building index -----\n";
-    timer.reset();
-    RelzIndexReference index(factors, reference, s_size + 1, reference, reference_size + 1);
-    cout << "----- index finished in " << timer.getMilisec() << " ms -----\n";
-    cout << sizeof(Interpreter) << endl;
+    
     return 0;
 }
 
