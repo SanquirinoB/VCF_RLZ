@@ -31,8 +31,7 @@ void VCFParsingInterpreter::Initialize()
     cout << "[RLZ] Building index" << endl;
     char* reference = GetReference();
     timer.reset();
-    RelzIndexReference aux_index(factors, reference, S_size + 1, reference, Reference_len+ 1);
-    Index = &aux_index;
+    Index = new RelzIndexReference(factors, reference, S_size, reference, Reference_len);
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
 
@@ -357,6 +356,7 @@ void VCFParsingInterpreter::InduceFillFactors(phrase last_phrase, phrase curr_ph
 void VCFParsingInterpreter::BuildReconstructionStructures()
 {
     bit_vector b(S_size, 0);
+    cout << "#S_i = " << S_i_pos.size() << endl;
     for (ll i = 0; i < S_i_pos.size(); i++)
     {
         b[S_i_pos[i]] = 1;
@@ -482,7 +482,7 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
 {
     vector<unsigned int> raw_positions;
     vector<pair<sampleID, unsigned int>> result;
-    cout << "a" << endl;
+    cout << "a" << snippet.size() << endl;
     Index->findTimes(snippet, raw_positions);
     cout << "aa" << endl;
     unsigned int n_chrom = (unsigned int) n_chromosomes;
@@ -497,19 +497,28 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     {
         // primero buscamos cuantas muestras hay hasta esta posicion
         n_S_i_before = (unsigned int)rank_S_i(raw_pos);
-        cout << "aaaa" << endl;
         sample = n_S_i_before / (n_chrom * ploidy);
-        for (int i = 0; i < sample; i++)
+        for (unsigned int i = 0; i <= sample; i++)
         {
             getline(IDInfo_file, sample_name);
         }
-        cout << "aaaaa" << endl;
-        chrom = (n_S_i % sample) / ploidy;
+        IDInfo_file.seekg(0);
+        chrom = (n_S_i_before % (n_chrom * ploidy)) / ploidy;
+
         alele = n_S_i_before % ploidy;
-        cout << sample << "," << chrom << "," << alele << endl;
 
-        last_s_i = (unsigned int) select_S_i(n_S_i_before - 1);
-
+        cout << n_S_i_before << "," << sample << "," << chrom << "," << alele << endl;
+        
+        last_s_i = (unsigned int) select_S_i(n_S_i_before);
+        if (raw_pos < last_s_i)
+        {
+            cout << "Overflow" << "," << raw_pos << "," << last_s_i << "," << n_S_i_before << endl;
+        }
+        
+        cout << "Sample: " << sample_name << endl;
+        cout << "\t - Chrom: " << chrom << endl;
+        cout << "\t - Alele: " << alele << endl;
+        cout << "\t - Pos: " << (raw_pos - last_s_i) << endl;
         result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - last_s_i));
     }
 

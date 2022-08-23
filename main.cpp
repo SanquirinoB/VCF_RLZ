@@ -88,13 +88,14 @@ int main(int argc, char **argv)
         {
             cout << "Ingrese el snippet a consultar:" << endl;
             cin >> response;
+            cout << response.size() << endl;
             vector<pair<sampleID, unsigned int>> result = Interpreter.FindSnippet(response);
-            cout << "El snippet ocurre en los siguientes lugares:" << endl;
-            for (pair<sampleID, unsigned int> info:result)
-            {
-                cout << "\t- Muestra " << info.first.ID() << ", cromosoma " << info.first.chrom() <<
-                        ", alelo " << info.first.alele() << " y posición " << info.second << endl;
-            }
+            // cout << "El snippet ocurre en los siguientes lugares:" << endl;
+            // for (pair<sampleID, unsigned int> info:result)
+            // {
+            //     cout << "\t- Muestra " << info.first.ID() << ", cromosoma " << info.first.chrom() <<
+            //             ", alelo " << info.first.alele() << " y posición " << info.second << endl;
+            // }
             
         }
         
