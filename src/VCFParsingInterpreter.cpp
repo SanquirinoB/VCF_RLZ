@@ -486,28 +486,38 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     Index->findTimes(snippet, raw_positions);
     cout << "aa" << endl;
     unsigned int n_chrom = (unsigned int) n_chromosomes;
-    unsigned int n_S_i_before, sample, chrom, alele, last_s_i;
+    unsigned int n_S_i_before, sample, chrom, alele, last_i, last_s_i, aux;
     string sample_name;
 
     IDInfo_file.open(IDInfo_file_path);
     cout << "aaa" << endl;
 
+    sort(raw_positions.begin(), raw_positions.end());
+    // Initialize ID
+    last_i = 0;
+    getline(IDInfo_file, sample_name);
 
     for(unsigned int raw_pos : raw_positions)
     {
         // primero buscamos cuantas muestras hay hasta esta posicion
         n_S_i_before = (unsigned int)rank_S_i(raw_pos);
+        aux = n_S_i_before % (n_chrom * ploidy);
+
         sample = n_S_i_before / (n_chrom * ploidy);
-        for (unsigned int i = 0; i <= sample; i++)
+        sample = aux == 0 ? sample - 1 : sample;
+        
+        if(sample != last_i)
         {
             getline(IDInfo_file, sample_name);
+            last_i = sample;
         }
-        IDInfo_file.seekg(0);
-        chrom = (n_S_i_before % (n_chrom * ploidy)) / ploidy;
 
-        alele = n_S_i_before % ploidy;
+        chrom = (aux == 0 ? n_chrom * ploidy : aux) / ploidy;
 
-        cout << n_S_i_before << "," << sample << "," << chrom << "," << alele << endl;
+        aux = n_S_i_before % ploidy;
+        alele = (aux == 0 ? ploidy : aux);
+
+        cout << raw_pos << "," << n_S_i_before << "," << sample << "," << chrom << "," << alele << endl;
         
         last_s_i = (unsigned int) select_S_i(n_S_i_before);
         if (raw_pos < last_s_i)
