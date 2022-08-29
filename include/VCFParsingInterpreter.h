@@ -68,7 +68,7 @@ private:
 
 public:
     VCFParsingInterpreter(char *destination_path);
-    vector<pair<sampleID, unsigned int>> FindSnippet(string snippet);
+    vector<pair<sampleID, unsigned int>> FindSnippet(string snippet, bool show = false);
     void Initialize();
 
 private:

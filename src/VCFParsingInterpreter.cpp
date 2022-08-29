@@ -31,11 +31,6 @@ void VCFParsingInterpreter::Initialize()
     cout << "[RLZ] Building index" << endl;
     char* reference = GetReference();
     timer.reset();
-    for (pair<unsigned int, unsigned int> factor:factors)
-    {
-        cout << "(" << factor.first << "," << factor.second << ")" << endl;
-    }
-    cout << reference << endl;
     Index = new RelzIndexReference(factors, reference, S_size, reference, Reference_len);
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
@@ -373,13 +368,7 @@ void VCFParsingInterpreter::BuildReconstructionStructures()
 
     bit_vector_S_i = new rrr_vector<127>(b);
     rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
-    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);
-
-    for (int i = 1; i <= S_i_pos.size(); i++)
-    {
-        cout << "El s_i " << i <<" -esimo esta en la posicion " << (*select_S_i)(i) << endl;
-    }
-    
+    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);    
 }
 
 void VCFParsingInterpreter::BuildFactors()
@@ -486,21 +475,30 @@ char* VCFParsingInterpreter::GetReference()
     return reference;
 }
 
-vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string snippet)
+vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string snippet, bool show)
 {
-    vector<unsigned int> raw_positions;
     vector<pair<sampleID, unsigned int>> result;
-    Index->findTimes(snippet, raw_positions);
     unsigned int n_chrom = (unsigned int) n_chromosomes;
     unsigned int near_init, sample, chrom, alele, last_i, ini_s_i, next_s_i, aux_1, aux_2;
     string sample_name;
 
+    vector<unsigned int> raw_positions;
+    Index->findTimes(snippet, raw_positions);
+
+    if (raw_positions.empty())
+    {
+        return result;
+    }
+    
     IDInfo_file.open(IDInfo_file_path);
 
     sort(raw_positions.begin(), raw_positions.end());
+
     // Initialize ID
     last_i = 1;
     getline(IDInfo_file, sample_name);
+    cout << "Sample: " << sample_name << endl;
+
 
     for(unsigned int raw_pos : raw_positions)
     {
@@ -509,24 +507,27 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         // Recuperamos posicion de inicio real
         ini_s_i = (*select_S_i)(near_init);
         next_s_i = (*select_S_i)(near_init + 1);
+
+        // cout << near_init << "," << ini_s_i << "," << raw_pos << "," << snippet.size() << "," << next_s_i << endl;
+        
         // Si mi snippet no esta completamente dentro de mi seccion, entonces se descarta
-        cout << near_init << "," << ini_s_i << "," << raw_pos << "," << snippet.size() << "," << next_s_i << endl;
         if (raw_pos + snippet.size() > next_s_i)
         {
-            cout << " Resultado invalido, ojito" << endl;
+            // It means a pattern between S_i
             continue;
         }
         
         // Cuantos Indv lleno hasta este punto?
         aux_1 = near_init / (n_chrom * ploidy);
         // Si lleno justo, entonces me quedo en aux, sino paso al sgte
-        cout << (aux_1 * (n_chrom * ploidy) < near_init) << endl;
         sample = aux_1 * (n_chrom * ploidy) < near_init ? aux_1 + 1 : aux_1;
 
+        // Update sample name if required
         if(sample != last_i)
         {
             getline(IDInfo_file, sample_name);
             last_i = sample;
+            if (show) cout << "Sample: " << sample_name << endl;
         }
 
         // De lo que me sobro dentro de este sample
@@ -541,46 +542,18 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         // Arreglamos
         alele = aux_2 == 0? ploidy : aux_2;
 
-        cout << raw_pos << "," << near_init << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
-        cout << "Sample: " << sample_name << endl;
-        cout << "\t - Chrom: " << chrom << endl;
-        cout << "\t - Alele: " << alele << endl;
-        cout << "\t - Pos: " << (raw_pos - ini_s_i) << endl;
+        // cout << raw_pos << "," << near_init << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
+        if (show)
+        {
+            cout << " - Chrom: " << chrom << endl;
+            cout << "   - Alele: " << alele << endl;
+            cout << "     - Pos: " << (raw_pos - ini_s_i) << endl;
+        }
 
         result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
-
-        // Si no sobro, entonces estoy en en el resto (n_chrom * ploidy) - 1 de mi sample
-        // sino 
-        // // primero buscamos cuantas muestras hay hasta esta posicion
-        // n_S_i_before = (unsigned int)(*rank_S_i)(raw_pos);
-        // aux = n_S_i_before % (n_chrom * ploidy);
-
-        // sample = n_S_i_before / (n_chrom * ploidy);
-        // sample = (aux == 0  && sample != 0) ? sample - 1 : sample;
-        
-        // if(sample != last_i)
-        // {
-        //     getline(IDInfo_file, sample_name);
-        //     last_i = sample;
-        // }
-
-        // chrom = aux / ploidy;
-
-        // // aux = n_S_i_before % ploidy;
-
-        // alele = n_S_i_before % ploidy;
-        
-        // ini_s_i = n_S_i_before == 0 ? 0 : (unsigned int) (*select_S_i)(n_S_i_before);
-        
-        // cout << raw_pos << "," << n_S_i_before << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
-        
-        // cout << "Sample: " << sample_name << endl;
-        // cout << "\t - Chrom: " << chrom << endl;
-        // cout << "\t - Alele: " << alele << endl;
-        // cout << "\t - Pos: " << (raw_pos - ini_s_i) << endl;
-        // result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
     }
 
     IDInfo_file.close();
+
     return result;
 }

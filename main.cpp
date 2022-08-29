@@ -60,7 +60,6 @@ int main(int argc, char **argv)
     if (system(command.c_str()) == 0)
     {
         cout << "[RLZ]\tParsing sucessful! Time elapsed: " << timer.getMilisec() << "ms" << endl;
-        // cout << "[RLZ]\tParsing sucessful!" << endl;
     }
     else
     {
@@ -88,15 +87,7 @@ int main(int argc, char **argv)
         {
             cout << "Ingrese el snippet a consultar:" << endl;
             cin >> response;
-            cout << response.size() << endl;
-            vector<pair<sampleID, unsigned int>> result = Interpreter.FindSnippet(response);
-            // cout << "El snippet ocurre en los siguientes lugares:" << endl;
-            // for (pair<sampleID, unsigned int> info:result)
-            // {
-            //     cout << "\t- Muestra " << info.first.ID() << ", cromosoma " << info.first.chrom() <<
-            //             ", alelo " << info.first.alele() << " y posición " << info.second << endl;
-            // }
-            
+            vector<pair<sampleID, unsigned int>> result = Interpreter.FindSnippet(response, true);
         }
         
     }
