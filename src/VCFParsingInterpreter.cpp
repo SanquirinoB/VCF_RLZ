@@ -31,6 +31,11 @@ void VCFParsingInterpreter::Initialize()
     cout << "[RLZ] Building index" << endl;
     char* reference = GetReference();
     timer.reset();
+    for (pair<unsigned int, unsigned int> factor:factors)
+    {
+        cout << "(" << factor.first << "," << factor.second << ")" << endl;
+    }
+    cout << reference << endl;
     Index = new RelzIndexReference(factors, reference, S_size, reference, Reference_len);
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
@@ -115,6 +120,7 @@ bool VCFParsingInterpreter::ChangeInDiffIndv(phrase ref, phrase curr)
 
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor(phrase Phrase)
 {
+    rel_pos_chrom = dict_metareference[Phrase.chrom()].rel_pos();
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,     // Init position of current reference chromosome
                                                     Phrase.pos() - 1); // Copy until reach the actual position
     // cout << "(" << aux.first << "," << aux.second << ") : init" << endl;
@@ -123,6 +129,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor
 
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2)
 {
+    rel_pos_chrom = dict_metareference[Phrase1.chrom()].rel_pos();
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase1.pos() + Phrase1.len(),          // Start after the discarded slice of Phrase1
                      (Phrase2.pos() - 1) - (Phrase1.pos() + Phrase1.len())); // Fill until reach pos of Phrase2
     // cout << "(" << aux.first << "," << aux.second << ") : inter" << endl;
@@ -131,6 +138,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFacto
 
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(phrase Phrase)
 {
+    rel_pos_chrom = dict_metareference[Phrase.chrom()].rel_pos();
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase.pos() + Phrase.len(),                                   // Start after the discarded slice of Phrase
                      dict_metareference[Phrase.chrom()].n_bases() - (Phrase.pos() + Phrase.len())); // Fill until reach the end of the current chromosome-alele
     // cout << "(" << aux.first << "," << aux.second << ") : end" << endl;
@@ -139,6 +147,7 @@ pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(
 
 pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor(ll chromosome)
 {
+    rel_pos_chrom = dict_metareference[chromosome].rel_pos();
     pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
                      dict_metareference[chromosome].n_bases()); // Fill until reach the end of the current chromosome-alele
     // cout << "(" << aux.first << "," << aux.second << ") : full" << endl;
@@ -356,22 +365,15 @@ void VCFParsingInterpreter::InduceFillFactors(phrase last_phrase, phrase curr_ph
 void VCFParsingInterpreter::BuildReconstructionStructures()
 {
     bit_vector b(S_size, 0);
-    cout << "#S_i = " << S_i_pos.size() << endl;
+    // Turn on for all initial pos of each S_i
     for (ll i = 0; i < S_i_pos.size(); i++)
     {
         b[S_i_pos[i]] = 1;
     }
-    rrr_vector<127> rrrb(b);
-    bit_vector_S_i = rrrb;
 
-    rrr_vector<127>::rank_1_type aux_rank(&bit_vector_S_i);
-    rrr_vector<127>::select_1_type aux_select(&bit_vector_S_i);
-
-    rank_S_i = aux_rank;
-    select_S_i = aux_select;
-
-    cout<<"position of first one in b: "<<select_S_i(1)<<endl;
-    cout<<"position of second one in b: "<<select_S_i(2)<<endl;
+    bit_vector_S_i = new rrr_vector<127>(b);
+    rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
+    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);
 }
 
 void VCFParsingInterpreter::BuildFactors()
@@ -482,54 +484,87 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
 {
     vector<unsigned int> raw_positions;
     vector<pair<sampleID, unsigned int>> result;
-    cout << "a" << snippet.size() << endl;
     Index->findTimes(snippet, raw_positions);
-    cout << "aa" << endl;
     unsigned int n_chrom = (unsigned int) n_chromosomes;
-    unsigned int n_S_i_before, sample, chrom, alele, last_i, last_s_i, aux;
+    unsigned int near_init, sample, chrom, alele, last_i, ini_s_i, aux_1, aux_2;
     string sample_name;
 
     IDInfo_file.open(IDInfo_file_path);
-    cout << "aaa" << endl;
 
     sort(raw_positions.begin(), raw_positions.end());
     // Initialize ID
-    last_i = 0;
+    last_i = 1;
     getline(IDInfo_file, sample_name);
 
     for(unsigned int raw_pos : raw_positions)
     {
-        // primero buscamos cuantas muestras hay hasta esta posicion
-        n_S_i_before = (unsigned int)rank_S_i(raw_pos);
-        aux = n_S_i_before % (n_chrom * ploidy);
+        raw_pos += 1;
+        near_init = (*rank_S_i)(raw_pos);
+        // Cuantos Indv lleno hasta este punto?
+        aux_1 = near_init / (n_chrom * ploidy);
+        // Si lleno justo, entonces me quedo en aux, sino paso al sgte
+        cout << (aux_1 * (n_chrom * ploidy) < near_init) << endl;
+        sample = aux_1 * (n_chrom * ploidy) < near_init ? aux_1 + 1 : aux_1;
 
-        sample = n_S_i_before / (n_chrom * ploidy);
-        sample = aux == 0 ? sample - 1 : sample;
-        
         if(sample != last_i)
         {
             getline(IDInfo_file, sample_name);
             last_i = sample;
         }
 
-        chrom = (aux == 0 ? n_chrom * ploidy : aux) / ploidy;
+        // De lo que me sobro dentro de este sample
+        aux_1 = near_init - aux_1 * (n_chrom * ploidy);
+        // Arreglo en caso de llenar justo, equivale a ultima seccion
+        aux_1 = aux_1 == 0? (n_chrom * ploidy) : aux_1;
+        // De lo que sobra, que cromosoma llena
+        aux_2 = aux_1 / ploidy;
+        chrom = aux_2 * ploidy < aux_1 ? aux_2 + 1 : aux_2;
+        // Recuperamos lo que sobra dentro
+        aux_2 = aux_1 - aux_2 * ploidy;
+        // Arreglamos
+        alele = aux_2 == 0? ploidy : aux_2;
 
-        aux = n_S_i_before % ploidy;
-        alele = (aux == 0 ? ploidy : aux);
+        // Recuperamos posicion de inicio real
+        ini_s_i = (*select_S_i)(near_init);
 
-        cout << raw_pos << "," << n_S_i_before << "," << sample << "," << chrom << "," << alele << endl;
-        
-        last_s_i = (unsigned int) select_S_i(n_S_i_before);
-        if (raw_pos < last_s_i)
-        {
-            cout << "Overflow" << "," << raw_pos << "," << last_s_i << "," << n_S_i_before << endl;
-        }
-        
+        cout << raw_pos << "," << near_init << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
         cout << "Sample: " << sample_name << endl;
         cout << "\t - Chrom: " << chrom << endl;
         cout << "\t - Alele: " << alele << endl;
-        cout << "\t - Pos: " << (raw_pos - last_s_i) << endl;
-        result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - last_s_i));
+        cout << "\t - Pos: " << (raw_pos - ini_s_i) << endl;
+
+        result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
+
+        // Si no sobro, entonces estoy en en el resto (n_chrom * ploidy) - 1 de mi sample
+        // sino 
+        // // primero buscamos cuantas muestras hay hasta esta posicion
+        // n_S_i_before = (unsigned int)(*rank_S_i)(raw_pos);
+        // aux = n_S_i_before % (n_chrom * ploidy);
+
+        // sample = n_S_i_before / (n_chrom * ploidy);
+        // sample = (aux == 0  && sample != 0) ? sample - 1 : sample;
+        
+        // if(sample != last_i)
+        // {
+        //     getline(IDInfo_file, sample_name);
+        //     last_i = sample;
+        // }
+
+        // chrom = aux / ploidy;
+
+        // // aux = n_S_i_before % ploidy;
+
+        // alele = n_S_i_before % ploidy;
+        
+        // ini_s_i = n_S_i_before == 0 ? 0 : (unsigned int) (*select_S_i)(n_S_i_before);
+        
+        // cout << raw_pos << "," << n_S_i_before << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
+        
+        // cout << "Sample: " << sample_name << endl;
+        // cout << "\t - Chrom: " << chrom << endl;
+        // cout << "\t - Alele: " << alele << endl;
+        // cout << "\t - Pos: " << (raw_pos - ini_s_i) << endl;
+        // result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
     }
 
     IDInfo_file.close();
