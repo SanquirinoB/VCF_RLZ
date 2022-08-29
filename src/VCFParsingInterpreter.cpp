@@ -85,7 +85,7 @@ void VCFParsingInterpreter::HigienicFactorPushBack(pair<unsigned int, unsigned i
 {
     if (factor.second > 0)
     {
-        factors.push_back(make_pair((unsigned int)factor.first, (unsigned int)factor.second));
+        factors.push_back(make_pair((unsigned int)factor.first + 1, (unsigned int)factor.second));
         S_size += factor.second;
     }
 }
@@ -368,12 +368,18 @@ void VCFParsingInterpreter::BuildReconstructionStructures()
     // Turn on for all initial pos of each S_i
     for (ll i = 0; i < S_i_pos.size(); i++)
     {
-        b[S_i_pos[i]] = 1;
+        b[S_i_pos[i] + 1] = 1;
     }
 
     bit_vector_S_i = new rrr_vector<127>(b);
     rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
     select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);
+
+    for (int i = 1; i <= S_i_pos.size(); i++)
+    {
+        cout << "El s_i " << i <<" -esimo esta en la posicion " << (*select_S_i)(i) << endl;
+    }
+    
 }
 
 void VCFParsingInterpreter::BuildFactors()
@@ -486,7 +492,7 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     vector<pair<sampleID, unsigned int>> result;
     Index->findTimes(snippet, raw_positions);
     unsigned int n_chrom = (unsigned int) n_chromosomes;
-    unsigned int near_init, sample, chrom, alele, last_i, ini_s_i, aux_1, aux_2;
+    unsigned int near_init, sample, chrom, alele, last_i, ini_s_i, next_s_i, aux_1, aux_2;
     string sample_name;
 
     IDInfo_file.open(IDInfo_file_path);
@@ -500,6 +506,17 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     {
         raw_pos += 1;
         near_init = (*rank_S_i)(raw_pos);
+        // Recuperamos posicion de inicio real
+        ini_s_i = (*select_S_i)(near_init);
+        next_s_i = (*select_S_i)(near_init + 1);
+        // Si mi snippet no esta completamente dentro de mi seccion, entonces se descarta
+        cout << near_init << "," << ini_s_i << "," << raw_pos << "," << snippet.size() << "," << next_s_i << endl;
+        if (raw_pos + snippet.size() > next_s_i)
+        {
+            cout << " Resultado invalido, ojito" << endl;
+            continue;
+        }
+        
         // Cuantos Indv lleno hasta este punto?
         aux_1 = near_init / (n_chrom * ploidy);
         // Si lleno justo, entonces me quedo en aux, sino paso al sgte
@@ -523,9 +540,6 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         aux_2 = aux_1 - aux_2 * ploidy;
         // Arreglamos
         alele = aux_2 == 0? ploidy : aux_2;
-
-        // Recuperamos posicion de inicio real
-        ini_s_i = (*select_S_i)(near_init);
 
         cout << raw_pos << "," << near_init << "," << sample << "," << chrom << "," << alele << "," << ini_s_i << endl;
         cout << "Sample: " << sample_name << endl;
