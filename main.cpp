@@ -67,15 +67,16 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    VCFParsingSorter Sorter;
+    VCFParsingSorter* Sorter = new VCFParsingSorter();
     cout << "[RLZ] Start sorting process..." << endl;
     // FIN PROCESO DE PARSING VIA PYTHON
-    Sorter.StartProcess(argv);
+    Sorter->StartProcess(argv);
+
     cout << "[RLZ] Sorting process finished!" << endl;
 
+    VCFParsingInterpreter* Interpreter = new VCFParsingInterpreter();
 
-    VCFParsingInterpreter Interpreter(argv[1]);
-    Interpreter.Initialize();
+    Interpreter->InitializeFromParsing(argv[1]);
     
     string response;
     while(response != "2")
@@ -87,10 +88,12 @@ int main(int argc, char **argv)
         {
             cout << "Ingrese el snippet a consultar:" << endl;
             cin >> response;
-            vector<pair<sampleID, unsigned int>> result = Interpreter.FindSnippet(response, true);
+            vector<pair<sampleID, unsigned int>> result = Interpreter->FindSnippet(response, true);
         }
         
     }
+    Interpreter->SaveInterpreter();
+
     return 0;
 }
 

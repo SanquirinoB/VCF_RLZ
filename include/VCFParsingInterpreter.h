@@ -10,6 +10,10 @@
 #include <VCFCommon.h>
 #include <sdsl/bit_vectors.hpp>
 #include <iostream>
+#include <ctime>
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace std;
 using namespace sdsl;
@@ -17,6 +21,7 @@ using namespace sdsl;
 class VCFParsingInterpreter
 {
 private:
+    string Destination_path;
     string Reference_file_subpath = "Tmp/Parsing/Reference.tmprlz";
     string Phrases_file_subpath = "Tmp/Parsing/phrases.tmprlz";
     string MetaReference_file_subpath = "Tmp/Meta_data/Reference.metarlz";
@@ -67,9 +72,12 @@ private:
     rrr_vector<127>::select_1_type* select_S_i;
 
 public:
-    VCFParsingInterpreter(char *destination_path);
+    VCFParsingInterpreter();
     vector<pair<sampleID, unsigned int>> FindSnippet(string snippet, bool show = false);
-    void Initialize();
+    void InitializeFromParsing(char *destination_path);
+    void InitializeFromPreloadedFile(char *folder_path);
+
+    void SaveInterpreter();
 
 private:
     // Consume files

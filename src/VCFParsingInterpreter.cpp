@@ -3,12 +3,22 @@
 using namespace std;
 using namespace sdsl;
 
-#define BINARY_FILE ifstream::in | ifstream::binary
+#define INPUT_BINARY_FILE ios::in | ios::binary
+#define OUTPUT_BINARY_FILE ios::out | ios::binary
 
-VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
+VCFParsingInterpreter::VCFParsingInterpreter()
+{
+}
+
+void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
+{
+}
+
+void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
 {
     // Something like .../VCF_files/
-    string Destination_path(destination_path);
+    string Destination_path_aux(destination_path);
+    Destination_path = Destination_path_aux;
 
     // TODO: Assert if ./Tmp is a valid folder
     Reference_file_path = Destination_path + Reference_file_subpath;
@@ -16,10 +26,7 @@ VCFParsingInterpreter::VCFParsingInterpreter(char *destination_path)
     MetaReference_file_path = Destination_path + MetaReference_file_subpath;
     MetaParsing_file_path = Destination_path + MetaParsing_file_subpath;
     IDInfo_file_path = Destination_path + IDInfo_file_subpath;
-}
 
-void VCFParsingInterpreter::Initialize()
-{
     cout << "[RLZ] Reading metadata" << endl;
     NanoTimer timer;
     ProcessReference();
@@ -38,7 +45,7 @@ void VCFParsingInterpreter::Initialize()
 void VCFParsingInterpreter::ProcessReference()
 {
     // Open required files
-    MetaReference_file.open(MetaReference_file_path, BINARY_FILE);
+    MetaReference_file.open(MetaReference_file_path, INPUT_BINARY_FILE);
 
     // The first structure contains summary info
     // cout << "Lee la estructura" << endl;
@@ -65,7 +72,7 @@ void VCFParsingInterpreter::ProcessReference()
 
 void VCFParsingInterpreter::ProcessMetaParsing()
 {
-    MetaParsing_file.open(MetaParsing_file_path, BINARY_FILE);
+    MetaParsing_file.open(MetaParsing_file_path, INPUT_BINARY_FILE);
     MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_Phrases = metainfo_buffer.n_phrases();
     MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
@@ -385,7 +392,7 @@ void VCFParsingInterpreter::BuildFactors()
     bool is_debug = true;
 
     // Open phrases file
-    Phrases_file.open(Phrases_file_path, BINARY_FILE);
+    Phrases_file.open(Phrases_file_path, INPUT_BINARY_FILE);
     // Read first dummy phrase
     Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
 
@@ -423,34 +430,6 @@ void VCFParsingInterpreter::BuildFactors()
     Phrases_file.close();
 
     int actual_indv = 0, actual_chrom = 0, actual_alele = 0;
-    // for (int i = 0; i < S_i_pos.size(); i++)
-    // {
-    //     cout << "(" << actual_indv << "," << actual_chrom << "," << actual_alele << "): " << S_i_pos[i] << endl;
-    //     // If reach alele limit
-    //     if (actual_alele == 1)
-    //     {
-    //         // If reach chrom limit
-    //         if (actual_chrom == n_chromosomes - 1)
-    //         {
-    //             // Move to next indv
-    //             actual_indv++;
-    //             // Reset chromosome
-    //             actual_chrom = 0;
-    //         }
-    //         else
-    //         {
-    //             // Move to next chromosome
-    //             actual_chrom++;
-    //         }
-    //         // Reset alele
-    //         actual_alele--;
-    //     }
-    //     else
-    //     {
-    //         // Move to next alele
-    //         actual_alele++;
-    //     }
-    // }
 
     BuildReconstructionStructures();
 }
@@ -556,4 +535,51 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     IDInfo_file.close();
 
     return result;
+}
+
+void VCFParsingInterpreter::SaveInterpreter()
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H:%M:%S/",timeinfo);
+    string current_time(buffer);
+    string Destination_folder_name = Destination_path + "VCF_RLZ_" + current_time;
+
+    if(mkdir(Destination_folder_name.c_str(), 0777) == -1)
+    {
+        cerr << "[RLZ] Save Error : " << strerror(errno) << endl;
+        return;
+    }
+    // Save index
+    string Destination_aux = Destination_folder_name + "vcf-rlz-index";
+    Index->save(Destination_aux);
+    
+    // Save ID name data
+    fstream  src(IDInfo_file_path, INPUT_BINARY_FILE);
+    fstream  dst(Destination_aux + ".idinfo", OUTPUT_BINARY_FILE);
+    dst << src.rdbuf();
+    src.close();
+    dst.close();
+
+    // Save numeric data
+    dst.open(Destination_aux + ".data", OUTPUT_BINARY_FILE);
+    dst.write((char*)&n_chromosomes, sizeof(int));
+    dst.close();
+
+    // Save sdsl structures
+    store_to_file((*rank_S_i), Destination_aux + ".rank");
+    store_to_file((*select_S_i), Destination_aux + ".select");
+
+    // Eliminar la carpeta Tmp
+    string command = "rm -r " + Destination_path + "Tmp/";
+    if(system(command.c_str()) == -1)
+    {
+        cerr << "[RLZ] Delete Error : Please try to delete manually the following folder to free space: " << Destination_path + "Tmp/" << endl;
+        cerr << "\t Error caused by: " << strerror(errno) << endl;
+    }
 }
