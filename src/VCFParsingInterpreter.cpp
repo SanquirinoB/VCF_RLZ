@@ -12,6 +12,22 @@ VCFParsingInterpreter::VCFParsingInterpreter()
 
 void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
 {
+    // Recover index
+    string Destination_folder_name(folder_path);
+    string Destination_aux = Destination_folder_name + "vcf-rlz-index";
+    Index->load(Destination_aux);
+    
+    // Recover ID name data
+    IDInfo_file_path = Destination_folder_name + ".idinfo";
+
+    // Recover numeric data
+    fstream src(Destination_aux + ".data", INPUT_BINARY_FILE);
+    src.read((char*)&n_chromosomes, sizeof(int));
+    src.close();
+
+    // Recover sdsl structures
+    load_from_file((*rank_S_i), Destination_aux + ".rank");
+    load_from_file((*select_S_i), Destination_aux + ".select");
 }
 
 void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
