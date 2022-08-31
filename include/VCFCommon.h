@@ -53,7 +53,6 @@ struct phrase
 {
     ll m_indv, m_chrom, m_alele;
     ll m_pos, m_pos_e;
-    ll m_edit;
     ll m_len, m_len_e;
 
     ll indv() const { return m_indv; }
@@ -61,31 +60,29 @@ struct phrase
     ll alele() const { return m_alele; }
     ll pos() const { return m_pos; }
     ll pos_e() const { return m_pos_e; }
-    ll edit() const { return m_edit; }
     ll len() const { return m_len; }
     ll len_e() const { return m_len_e; }
 
     phrase() {}
     phrase(ll v_indv, ll v_chrom, ll v_alele, ll v_pos,
-           ll v_pos_e, ll v_edit, ll v_len, ll v_len_e) : m_indv(v_indv),
-                                                          m_chrom(v_chrom),
-                                                          m_alele(v_alele),
-                                                          m_pos(v_pos),
-                                                          m_pos_e(v_pos_e),
-                                                          m_edit(v_edit),
-                                                          m_len(v_len),
-                                                          m_len_e(v_len_e)
+           ll v_pos_e, ll v_len, ll v_len_e) : m_indv(v_indv),
+                                                m_chrom(v_chrom),
+                                                m_alele(v_alele),
+                                                m_pos(v_pos),
+                                                m_pos_e(v_pos_e),
+                                                m_len(v_len),
+                                                m_len_e(v_len_e)
     {
     }
 
     static phrase min_value()
     {
-        return phrase((ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0);
+        return phrase((ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0, (ll)0);
     }
 
     static phrase max_value()
     {
-        return phrase((ll)9999, (ll)9999, (ll)9999, (ll)9999999999, (ll)9999999999, (ll)0, (ll)0, (ll)0);
+        return phrase((ll)9999, (ll)9999, (ll)9999, (ll)9999999999, (ll)9999999999, (ll)0, (ll)0);
     }
 };
 
