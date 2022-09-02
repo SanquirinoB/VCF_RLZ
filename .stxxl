@@ -1,0 +1,2 @@
+# file path,maximum capacity of the disk,access method
+disk=/tmp/stxxl,1G,syscall unlink
