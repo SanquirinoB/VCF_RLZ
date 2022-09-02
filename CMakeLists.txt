@@ -29,7 +29,9 @@ link_directories(${VCF_RLZ_INCLUDE_DIRS})
 add_library(vcf_rlz STATIC ${SOURCES})
 
 add_executable(process main.cpp)
+add_executable(preload GenerateFromPreloadedFile.cpp)
 
 #target_include_directories(process PUBLIC ${STXXL_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
-target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64)
-target_link_libraries(process stxxl relz sdsl divsufsort divsufsort64 vcf_rlz)
+target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64 relz)
+target_link_libraries(process vcf_rlz sdsl relz stxxl sdsl divsufsort divsufsort64)
+target_link_libraries(preload vcf_rlz sdsl relz sdsl divsufsort divsufsort64)

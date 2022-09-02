@@ -15,6 +15,7 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     // Recover index
     string Destination_folder_name(folder_path);
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
+    Index = new RelzIndexReference();
     Index->load(Destination_aux);
     
     // Recover ID name data
@@ -25,9 +26,12 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     src.read((char*)&n_chromosomes, sizeof(int));
     src.close();
 
-    // Recover sdsl structures
-    load_from_file((*rank_S_i), Destination_aux + ".rank");
-    load_from_file((*select_S_i), Destination_aux + ".select");
+    // Recover sdsl structurescd ..
+    bit_vector_S_i = new rrr_vector<127>();
+    load_from_file((*bit_vector_S_i), Destination_aux + ".rrr");
+
+    rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
+    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);
 }
 
 void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
@@ -478,7 +482,9 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     string sample_name;
 
     vector<unsigned int> raw_positions;
+    cout << 1 << endl;
     Index->findTimes(snippet, raw_positions);
+    cout << 2 << endl;
 
     if (raw_positions.empty())
     {
@@ -585,11 +591,10 @@ void VCFParsingInterpreter::SaveInterpreter()
     // Save numeric data
     dst.open(Destination_aux + ".data", OUTPUT_BINARY_FILE);
     dst.write((char*)&n_chromosomes, sizeof(int));
-    dst.close();
+    dst.close(); 
 
     // Save sdsl structures
-    store_to_file((*rank_S_i), Destination_aux + ".rank");
-    store_to_file((*select_S_i), Destination_aux + ".select");
+    store_to_file((*bit_vector_S_i), Destination_aux + ".rrr");
 
     // Eliminar la carpeta Tmp
     string command = "rm -r " + Destination_path + "Tmp/";
