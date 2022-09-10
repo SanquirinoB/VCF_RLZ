@@ -5,8 +5,8 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include <relz/NanoTimer.h>
-#include <relz/RelzIndexReference.h>
+#include <NanoTimer.h>
+#include <RelzIndexReference.h>
 #include <VCFCommon.h>
 #include <sdsl/bit_vectors.hpp>
 #include <iostream>
@@ -21,39 +21,26 @@ using namespace sdsl;
 class VCFParsingInterpreter
 {
 private:
+    // Required to be reminded
     string Destination_path;
+    string IDInfo_file_path;
+
+    // For internal construction (clear not required)
     string Reference_file_subpath = "Tmp/Parsing/Reference.tmprlz";
     string Phrases_file_subpath = "Tmp/Parsing/phrases.tmprlz";
     string MetaReference_file_subpath = "Tmp/Meta_data/Reference.metarlz";
     string MetaParsing_file_subpath = "Tmp/Meta_data/Meta_info.metarlz";
     string IDInfo_file_subpath = "Tmp/Meta_data/ID_info.metarlz";
+    ifstream Reader;
+    unsigned int ploidy = 2;
 
-    string Reference_file_path;
-    string Phrases_file_path;
-    string MetaReference_file_path;
-    string MetaParsing_file_path;
-    string IDInfo_file_path;
-
-    ifstream Reference_file;
-    ifstream Phrases_file;
-    ifstream MetaReference_file;
-    ifstream MetaParsing_file;
-    ifstream IDInfo_file;
-
-    metareference metareference_buffer;
-    metainfo metainfo_buffer;
-
-    // Reference related
+    // For internal construction (clear required)
     int Reference_len;
-    int n_References;
     map<int, metareference> dict_metareference{};
-    map<int, sampleID> dict_samples{};
 
     // Parsing related
     ll n_Phrases;
-    int n_Samples;
     int n_chromosomes;
-    unsigned int ploidy = 2;
     vector_type Phrases;
 
     // Actual S related
@@ -78,6 +65,8 @@ public:
     void InitializeFromPreloadedFile(char *folder_path);
 
     void SaveInterpreter();
+
+    double GetSizeInMB();
 
 private:
     // Consume files
@@ -110,6 +99,7 @@ private:
     void InduceFillFactors(phrase last_phrase, phrase curr_phrase, bool last_is_dummy, bool curr_is_dummy);
 
     void PrintState(phrase curr_phrase, ll last_pos, ll last_l, ll last_l_e);
+    void FreeCacheVariables();
 };
 
 #endif

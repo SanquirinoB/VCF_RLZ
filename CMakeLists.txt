@@ -24,10 +24,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${STXXL_CXX_FLAGS}")
 # ADD INCLUDES PATH OF OUR LIBRARIES
 # add STXXL includes path
 set(VCF_RLZ_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include/)
-include_directories(${STXXL_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
+include_directories(${STXXL_INCLUDE_DIRS} ${RLZ_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
 
 link_directories(${VCF_RLZ_INCLUDE_DIRS})
-add_library(vcf_rlz STATIC ${SOURCES})
+add_library(vcf_rlz STATIC ${SOURCES} ${VCF_RLZ_INCLUDE_DIRS})
+# target_include_directories(vcf_rlz PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(fullbuild GenerateFromVCFFiles.cpp)
 add_executable(prebuild GenerateFromPreloadedFile.cpp)

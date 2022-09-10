@@ -41,10 +41,6 @@ void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
     Destination_path = Destination_path_aux;
 
     // TODO: Assert if ./Tmp is a valid folder
-    Reference_file_path = Destination_path + Reference_file_subpath;
-    Phrases_file_path = Destination_path + Phrases_file_subpath;
-    MetaReference_file_path = Destination_path + MetaReference_file_subpath;
-    MetaParsing_file_path = Destination_path + MetaParsing_file_subpath;
     IDInfo_file_path = Destination_path + IDInfo_file_subpath;
 
     cout << "[RLZ] Reading metadata" << endl;
@@ -60,25 +56,31 @@ void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
     timer.reset();
     Index = new RelzIndexReference(factors, reference, S_size, reference, Reference_len);
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
+    FreeCacheVariables();
+}
+void VCFParsingInterpreter::FreeCacheVariables()
+{
+   
 }
 
 void VCFParsingInterpreter::ProcessReference()
 {
     // Open required files
-    MetaReference_file.open(MetaReference_file_path, INPUT_BINARY_FILE);
+    Reader.open(Destination_path + MetaReference_file_subpath, INPUT_BINARY_FILE);
 
     // The first structure contains summary info
     // cout << "Lee la estructura" << endl;
-    MetaReference_file.read((char *)&metareference_buffer, sizeof(metareference));
+    metareference metareference_buffer;
+    Reader.read((char *)&metareference_buffer, sizeof(metareference));
     Reference_len = metareference_buffer.n_bases();
-    n_References = metareference_buffer.rel_pos();
+    int n_References = metareference_buffer.rel_pos();
 
     // cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
 
     // Collect all metadata
     for (int i = 0; i < n_References; i++)
     {
-        MetaReference_file.read((char *)&metareference_buffer, sizeof(metareference));
+        Reader.read((char *)&metareference_buffer, sizeof(metareference));
         dict_metareference[metareference_buffer.ID()] = metareference_buffer;
         // if (i <= 4)
         // {
@@ -86,21 +88,22 @@ void VCFParsingInterpreter::ProcessReference()
         //          << ", rel_pos: " << metareference_buffer.rel_pos() << endl;
         // }
     }
-    MetaReference_file.clear();
-    MetaReference_file.close();
+    Reader.clear();
+    Reader.close();
 }
 
 void VCFParsingInterpreter::ProcessMetaParsing()
 {
-    MetaParsing_file.open(MetaParsing_file_path, INPUT_BINARY_FILE);
-    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
+    Reader.open(Destination_path + MetaParsing_file_subpath, INPUT_BINARY_FILE);
+    
+    metainfo metainfo_buffer;
+
+    Reader.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_Phrases = metainfo_buffer.n_phrases();
-    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
-    n_Samples = metainfo_buffer.n_phrases();
-    MetaParsing_file.read((char *)&metainfo_buffer, sizeof(metainfo));
+    Reader.read((char *)&metainfo_buffer, sizeof(metainfo));
     n_chromosomes = metainfo_buffer.n_phrases();
-    MetaParsing_file.close();
-    MetaParsing_file.close();
+    Reader.close();
+    Reader.close();
 }
 
 void VCFParsingInterpreter::HigienicFactorPushBack(pair<unsigned int, unsigned int> factor)
@@ -412,9 +415,9 @@ void VCFParsingInterpreter::BuildFactors()
     bool is_debug = true;
 
     // Open phrases file
-    Phrases_file.open(Phrases_file_path, INPUT_BINARY_FILE);
+    Reader.open(Destination_path + Phrases_file_subpath, INPUT_BINARY_FILE);
     // Read first dummy phrase
-    Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+    Reader.read((char *)&curr_phrase, sizeof(phrase));
 
     // Initialize indentifier variants
     phrase last_phrase = curr_phrase;
@@ -423,7 +426,7 @@ void VCFParsingInterpreter::BuildFactors()
     for (ll i = 1; i < n_Phrases; i++)
     {
         // Read the next phrase (Read the first actual phrase)
-        Phrases_file.read((char *)&curr_phrase, sizeof(phrase));
+        Reader.read((char *)&curr_phrase, sizeof(phrase));
         if (i == n_Phrases - 1)
         {
             curr_is_dummy = true;
@@ -446,8 +449,8 @@ void VCFParsingInterpreter::BuildFactors()
         rel_pos_chrom = dict_metareference[curr_phrase.chrom()].rel_pos();
     }
 
-    Phrases_file.clear();
-    Phrases_file.close();
+    Reader.clear();
+    Reader.close();
 
     int actual_indv = 0, actual_chrom = 0, actual_alele = 0;
 
@@ -456,16 +459,16 @@ void VCFParsingInterpreter::BuildFactors()
 
 char* VCFParsingInterpreter::GetReference()
 {
-    Reference_file.open(Reference_file_path, ios::in);
+    Reader.open(Destination_path + Reference_file_subpath, ios::in);
 
     string reference_aux;
-    if (Reference_file.is_open())
+    if (Reader.is_open())
     {
-        getline(Reference_file, reference_aux);
+        getline(Reader, reference_aux);
     }
 
-    Reference_file.clear();
-    Reference_file.close();
+    Reader.clear();
+    Reader.close();
 
     const char *reference_const = reference_aux.c_str();
     char *reference = new char[Reference_len + 1];
@@ -491,13 +494,13 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         return result;
     }
     
-    IDInfo_file.open(IDInfo_file_path);
+    Reader.open(IDInfo_file_path);
 
     sort(raw_positions.begin(), raw_positions.end());
 
     // Initialize ID
     last_i = 1;
-    getline(IDInfo_file, sample_name);
+    getline(Reader, sample_name);
     cout << "Sample: " << sample_name << endl;
 
 
@@ -526,7 +529,7 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         // Update sample name if required
         if(sample != last_i)
         {
-            getline(IDInfo_file, sample_name);
+            getline(Reader, sample_name);
             last_i = sample;
             if (show) cout << "Sample: " << sample_name << endl;
         }
@@ -554,7 +557,7 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
         result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
     }
 
-    IDInfo_file.close();
+    Reader.close();
 
     return result;
 }
@@ -603,4 +606,15 @@ void VCFParsingInterpreter::SaveInterpreter()
         cerr << "[RLZ] Delete Error : Please try to delete manually the following folder to free space: " << Destination_path + "Tmp/" << endl;
         cerr << "\t Error caused by: " << strerror(errno) << endl;
     }
+}
+
+double VCFParsingInterpreter::GetSizeInMB()
+{
+    double total_size = 0;
+
+    total_size += Index->getSize();
+
+    total_size += size_in_bytes(*bit_vector_S_i);
+
+    return total_size;
 }
