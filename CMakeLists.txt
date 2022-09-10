@@ -15,6 +15,7 @@ file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 # INCLUDE LIBRARIES
 add_subdirectory(stxxl)
+add_subdirectory(RLZ)
 
 # ADD FLAGS REQUIRED
 # apply STXXL CXXFLAGS to our configuration
@@ -32,6 +33,6 @@ add_executable(fullbuild GenerateFromVCFFiles.cpp)
 add_executable(prebuild GenerateFromPreloadedFile.cpp)
 
 #target_include_directories(process PUBLIC ${STXXL_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
-target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64 relz)
-target_link_libraries(fullbuild vcf_rlz sdsl relz stxxl sdsl divsufsort divsufsort64)
-target_link_libraries(prebuild vcf_rlz sdsl relz sdsl divsufsort divsufsort64)
+target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64 RLZ)
+target_link_libraries(fullbuild vcf_rlz sdsl RLZ stxxl sdsl divsufsort divsufsort64)
+target_link_libraries(prebuild vcf_rlz sdsl RLZ sdsl divsufsort divsufsort64)

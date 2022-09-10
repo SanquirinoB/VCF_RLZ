@@ -4,3 +4,6 @@
 [submodule "stxxl"]
 	path = stxxl
 	url = https://github.com/stxxl/stxxl.git
+[submodule "RLZ"]
+	path = RLZ
+	url = https://github.com/SanquirinoB/RLZ.git
