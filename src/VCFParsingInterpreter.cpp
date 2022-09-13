@@ -27,11 +27,11 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     src.close();
 
     // Recover sdsl structurescd ..
-    bit_vector_S_i = new rrr_vector<127>();
+    bit_vector_S_i = new sd_vector<>();
     load_from_file((*bit_vector_S_i), Destination_aux + ".rrr");
 
-    rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
-    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);
+    rank_S_i = new sd_vector<>::rank_1_type(bit_vector_S_i);
+    select_S_i = new sd_vector<>::select_1_type(bit_vector_S_i);
 }
 
 void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
@@ -396,9 +396,9 @@ void VCFParsingInterpreter::BuildReconstructionStructures()
         b[S_i_pos[i] + 1] = 1;
     }
 
-    bit_vector_S_i = new rrr_vector<127>(b);
-    rank_S_i = new rrr_vector<127>::rank_1_type(bit_vector_S_i);
-    select_S_i = new rrr_vector<127>::select_1_type(bit_vector_S_i);    
+    bit_vector_S_i = new sd_vector<>(b);
+    rank_S_i = new sd_vector<>::rank_1_type(bit_vector_S_i);
+    select_S_i = new sd_vector<>::select_1_type(bit_vector_S_i);    
 }
 
 void VCFParsingInterpreter::BuildFactors()

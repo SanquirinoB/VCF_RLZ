@@ -54,9 +54,9 @@ private:
 
     // Reconstruction structures
     RelzIndexReference* Index;
-    rrr_vector<127>* bit_vector_S_i;
-    rrr_vector<127>::rank_1_type* rank_S_i;
-    rrr_vector<127>::select_1_type* select_S_i;
+    sd_vector<>* bit_vector_S_i;
+    sd_vector<>::rank_1_type* rank_S_i;
+    sd_vector<>::select_1_type* select_S_i;
 
 public:
     VCFParsingInterpreter();
