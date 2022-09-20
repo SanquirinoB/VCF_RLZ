@@ -10,6 +10,9 @@ public:
     ~VCFParsingSorter();
 
     void StartProcess(char **argv);
+
+    // Just for experimentation purposes
+    void StartProcess(string command);
 };
 
 #endif

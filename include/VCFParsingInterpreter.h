@@ -62,11 +62,12 @@ public:
     VCFParsingInterpreter();
     vector<pair<sampleID, unsigned int>> FindSnippet(string snippet, bool show = false);
     void InitializeFromParsing(char *destination_path);
+    void InitializeFromParsing(string destination_path);
     void InitializeFromPreloadedFile(char *folder_path);
 
     void SaveInterpreter();
 
-    double GetSizeInMB();
+    double GetSize();
 
 private:
     // Consume files

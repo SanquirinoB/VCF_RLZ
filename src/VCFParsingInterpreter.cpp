@@ -30,7 +30,7 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
 
     // Recover sdsl structurescd ..
     bit_vector_S_i = new sd_vector<>();
-    load_from_file((*bit_vector_S_i), Destination_aux + ".rrr");
+    load_from_file((*bit_vector_S_i), Destination_aux + ".sdv");
 
     rank_S_i = new sd_vector<>::rank_1_type(bit_vector_S_i);
     select_S_i = new sd_vector<>::select_1_type(bit_vector_S_i);
@@ -40,6 +40,13 @@ void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
 {
     // Something like .../VCF_files/
     string Destination_path_aux(destination_path);
+    InitializeFromParsing(Destination_path);
+}
+
+void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
+{
+    // Something like .../VCF_files/
+    string Destination_path_aux = destination_path;
     Destination_path = Destination_path_aux;
 
     // TODO: Assert if ./Tmp is a valid folder
@@ -64,6 +71,7 @@ void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
     FreeCacheVariables();
 }
+
 void VCFParsingInterpreter::FreeCacheVariables()
 {
 
@@ -627,7 +635,7 @@ void VCFParsingInterpreter::SaveInterpreter()
     dst.close();
 
     // Save sdsl structures
-    store_to_file((*bit_vector_S_i), Destination_aux + ".rrr");
+    store_to_file((*bit_vector_S_i), Destination_aux + ".sdv");
 
     // Eliminar la carpeta Tmp
     string command = "rm -r " + Destination_path + "Tmp/";
@@ -638,7 +646,7 @@ void VCFParsingInterpreter::SaveInterpreter()
     }
 }
 
-double VCFParsingInterpreter::GetSizeInMB()
+double VCFParsingInterpreter::GetSize()
 {
     double total_size = 0;
 

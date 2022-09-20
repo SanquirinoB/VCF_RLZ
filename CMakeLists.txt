@@ -32,8 +32,10 @@ add_library(vcf_rlz STATIC ${SOURCES} ${VCF_RLZ_INCLUDE_DIRS})
 
 add_executable(fullbuild GenerateFromVCFFiles.cpp)
 add_executable(prebuild GenerateFromPreloadedFile.cpp)
+add_executable(timeC "${PROJECT_SOURCE_DIR}/experiments/ConstructionTime.cpp")
 
 #target_include_directories(process PUBLIC ${STXXL_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
 target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64 RLZ)
 target_link_libraries(fullbuild vcf_rlz sdsl RLZ stxxl sdsl divsufsort divsufsort64)
 target_link_libraries(prebuild vcf_rlz sdsl RLZ sdsl divsufsort divsufsort64)
+target_link_libraries(timeC vcf_rlz sdsl RLZ stxxl sdsl divsufsort divsufsort64)
