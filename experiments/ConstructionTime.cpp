@@ -7,7 +7,7 @@
 
 // From RLZ
 #include <relz/NanoTimer.h>
-#include <relz/RelzIndexReference.h>
+// #include <relz/RelzIndexReference.h>
 
 #include "VCFParsingSorter.h"
 #include "VCFParsingInterpreter.h"
@@ -19,6 +19,7 @@ int main(int argc, char **argv)
     string commands_file_path(argv[1]);
     string skipParse(argv[3]);
     string skipSort(argv[4]);
+    string skipBuild(argv[5]);
     ifstream commands_file(commands_file_path);
     string command_aux;
     vector<string> commands;
@@ -79,18 +80,26 @@ int main(int argc, char **argv)
             cout << "   SORT skipped..." << endl;
         }
 
-        cout << " BUILD starting..." << endl;
-        timer.reset();
-        VCFParsingInterpreter* Interpreter = new VCFParsingInterpreter();
-        Interpreter->InitializeFromParsing(destPath);
+        if(strcmp(skipBuild.c_str(),"TRUE") != 0)
+        {
+            cout << " BUILD starting..." << endl;
+            timer.reset();
+            VCFParsingInterpreter Interpreter = VCFParsingInterpreter();
+            Interpreter.InitializeFromParsing(destPath);
 
-        timeElapsed = timer.getMilisec();
-        size = Interpreter->GetSize();
-        results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
-        results_file.flush();
-        cout << "   BUILD Ended: " << endl;
-        cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
-        Interpreter->SaveInterpreter();
+            timeElapsed = timer.getMilisec();
+            size = Interpreter.GetSize();
+            results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            results_file.flush();
+            cout << "   BUILD Ended: " << endl;
+            cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            Interpreter.SaveInterpreter();
+            // delete Interpreter;
+        }
+        else
+        {
+            cout << "   BUILD skipped..." << endl;
+        }
     }
 
     return 0;

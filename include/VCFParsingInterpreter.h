@@ -53,7 +53,7 @@ private:
     ll rel_pos_chrom;
 
     // Reconstruction structures
-    RelzIndexReference Index;
+    RelzIndexReference *Index;
     sd_vector<> bit_vector_S_i;
     sd_vector<>::rank_1_type rank_S_i;
     sd_vector<>::select_1_type select_S_i;

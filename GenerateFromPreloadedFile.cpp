@@ -35,7 +35,7 @@ int main(int argc, char **argv)
         {
             cout << "Ingrese el snippet a consultar:" << endl;
             cin >> response;
-            vector<pair<sampleID, unsigned int>> result = Interpreter->FindSnippet(response, true);
+            vector<pair<sampleID, ll>> result = Interpreter->FindSnippet(response, true);
         }
         
     }

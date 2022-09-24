@@ -17,8 +17,8 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     // Recover index
     string Destination_folder_name(folder_path);
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
-    Index = RelzIndexReference();
-    Index.load(Destination_aux);
+    Index = new RelzIndexReference();
+    Index->load(Destination_aux);
 
     // Recover ID name data
     IDInfo_file_path = Destination_folder_name + ".idinfo";
@@ -94,8 +94,11 @@ void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
     //const char *reference_ = reference->getText();
     //char * emulated_text = (char *)reference_;
     cout << "[RLZ]      Create index" << endl;
-    Index = RelzIndexReference(factors, reference, (ull) S_size, reference, text_size);
+    Index = new RelzIndexReference(factors, reference, (ull) S_size, reference, text_size);
+    cout << "[DEBUG] Compacted len VCF: " << Index->RefLen() << endl;
     delete reference;
+    cout << "[DEBUG] Compacted len after delete: " << Index->RefLen() << endl;
+
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
 
@@ -145,18 +148,12 @@ void VCFParsingInterpreter::ProcessMetaParsing()
 
 void VCFParsingInterpreter::HigienicFactorPushBack(pair<ll, ll> factor)
 {
-    if(((ull) factor.first + (ull) factor.second) > (ull) Reference_len)
-    {
-        cerr << "[DEBUG] Factor ilegal: " << factor.first << ", " << factor.second << endl;
-        return;
-    }
-
     if (factor.second > 0)
     {
         factors.push_back(make_pair((ull)factor.first, (ull)factor.second));
         S_size += factor.second;
+        cout << "(" << factor.first << "," << factor.second << ")" << endl;
     }
-    
 }
 
 bool VCFParsingInterpreter::ChangeInSameIndvChromAlele(phrase ref, phrase curr)
@@ -478,10 +475,7 @@ void VCFParsingInterpreter::BuildFactors()
     {
         // Read the next phrase (Read the first actual phrase)
         Reader.read((char *)&curr_phrase, sizeof(phrase));
-
-        // cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|" << curr_phrase.len() << endl;
-        // cin >> last_is_dummy;
-
+        
         if (i == n_Phrases - 1)
         {
             curr_is_dummy = true;
@@ -521,7 +515,7 @@ vector<pair<sampleID, ll>> VCFParsingInterpreter::FindSnippet(string snippet, bo
 
     vector<ull> raw_positions;
     // cout << 1 << endl;
-    Index.findTimes(snippet, raw_positions);
+    Index->findTimes(snippet, raw_positions);
     // cout << 2 << endl;
 
     if (raw_positions.empty())
@@ -612,16 +606,18 @@ vector<pair<sampleID, ll>> VCFParsingInterpreter::FindSnippet(string snippet, bo
 
 void VCFParsingInterpreter::SaveInterpreter()
 {
-    time_t rawtime;
-    struct tm * timeinfo;
-    char buffer[80];
+    // time_t rawtime;
+    // struct tm * timeinfo;
+    // char buffer[80];
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
+    // time(&rawtime);
+    // timeinfo = localtime(&rawtime);
 
-    strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H:%M:%S/",timeinfo);
-    string current_time(buffer);
-    string Destination_folder_name = Destination_path + "VCF_RLZ_" + current_time;
+    // strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H:%M:%S/",timeinfo);
+    // string current_time(buffer);
+    // string Destination_folder_name = Destination_path + "VCF_RLZ_" + current_time;
+    string Destination_folder_name = Destination_path + "VCF_RLZ/";
+    cout << "[DEBUG] Compacted before save 1 VCF: " << Index->RefLen() << endl;
 
     if(mkdir(Destination_folder_name.c_str(), 0777) == -1)
     {
@@ -630,7 +626,10 @@ void VCFParsingInterpreter::SaveInterpreter()
     }
     // Save index
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
-    Index.save(Destination_aux);
+    Index->save(Destination_aux);
+
+    cout << "[DEBUG] Compacted after save 1 VCF: " << Index->RefLen() << endl;
+
 
     // Save ID name data
     fstream  src(IDInfo_file_path, INPUT_BINARY_FILE);
@@ -662,7 +661,7 @@ double VCFParsingInterpreter::GetSize()
 {
     double total_size = 0;
 
-    total_size += Index.getSize();
+    total_size += Index->getSize();
 
     total_size += size_in_bytes(bit_vector_S_i);
 
