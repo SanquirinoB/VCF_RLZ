@@ -1,4 +1,6 @@
 #include "VCFParsingInterpreter.h"
+#include "ReferenceIndexBasic.h"
+#include "TextFilterFull.h"
 
 using namespace std;
 using namespace sdsl;
@@ -15,25 +17,25 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     // Recover index
     string Destination_folder_name(folder_path);
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
-    Index = new RelzIndexReference();
-    Index->load(Destination_aux);
+    Index = RelzIndexReference();
+    Index.load(Destination_aux);
 
     // Recover ID name data
     IDInfo_file_path = Destination_folder_name + ".idinfo";
 
     // Recover numeric data
     fstream src(Destination_aux + ".data", INPUT_BINARY_FILE);
-    src.read((char*)&n_chromosomes, sizeof(int));
-    src.read((char*)&n_S_i, sizeof(int));
-    src.read((char*)&S_size, sizeof(int));
+    src.read((char*)&n_chromosomes, sizeof(ll));
+    src.read((char*)&n_S_i, sizeof(ll));
+    src.read((char*)&S_size, sizeof(ll));
     src.close();
 
     // Recover sdsl structurescd ..
-    bit_vector_S_i = new sd_vector<>();
-    load_from_file((*bit_vector_S_i), Destination_aux + ".sdv");
+    bit_vector_S_i = sd_vector<>();
+    load_from_file(bit_vector_S_i, Destination_aux + ".sdv");
 
-    rank_S_i = new sd_vector<>::rank_1_type(bit_vector_S_i);
-    select_S_i = new sd_vector<>::select_1_type(bit_vector_S_i);
+    rank_S_i = sd_vector<>::rank_1_type(&bit_vector_S_i);
+    select_S_i = sd_vector<>::select_1_type(&bit_vector_S_i);
 }
 
 void VCFParsingInterpreter::InitializeFromParsing(char *destination_path)
@@ -60,22 +62,43 @@ void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
     cout << "[RLZ] Building factors from phrases" << endl;
     timer.reset();
     BuildFactors();
-    // for (pair<unsigned int, unsigned int> factor : factors)
+    // for (pair<ll, ll> factor : factors)
     // {
     //     cout << "(" << factor.first << "," << factor.second << ")" << endl;
     // }
-    cout << "[RLZ] Building index" << endl;
-    char* reference = GetReference();
+    cout << "[RLZ] Building Index" << endl;
+    cout << "[RLZ]      Load reference from parsing" << endl;
     timer.reset();
-    Index = new RelzIndexReference(factors, reference, S_size, reference, Reference_len);
+    TextFilter *filter = new TextFilterFull();
+
+    fstream reader((Destination_path + Reference_file_subpath).c_str(), fstream::in);
+
+	if( ! reader.good() ){
+		cerr << "Error reading Reference" << endl;
+		return;
+	}
+
+	reader.seekg(0, reader.end);
+	ull text_len = reader.tellg();
+	reader.seekg(0, reader.beg);
+	reader.close();
+    
+    // I add the \n character by hand (so the additional +1)
+	char *reference = new char[text_len + 1];
+
+    ull text_size = filter->readReferenceFull((Destination_path + Reference_file_subpath).c_str(), reference);
+    cout << "Me dio el mismo size del parsing? " << (text_len == Reference_len) << endl;
+    cout << "Me dio el mismo size entre lecturas? " << (text_len == text_size) << endl;
+    //ReferenceIndex *reference = new ReferenceIndexBasic(text, 4);
+
+    //const char *reference_ = reference->getText();
+    //char * emulated_text = (char *)reference_;
+    cout << "[RLZ]      Create index" << endl;
+    Index = RelzIndexReference(factors, reference, (ull) S_size, reference, text_size);
+    delete reference;
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
-    FreeCacheVariables();
 }
 
-void VCFParsingInterpreter::FreeCacheVariables()
-{
-
-}
 
 void VCFParsingInterpreter::ProcessReference()
 {
@@ -89,7 +112,7 @@ void VCFParsingInterpreter::ProcessReference()
     Reference_len = metareference_buffer.n_bases();
     int n_References = metareference_buffer.rel_pos();
 
-    // cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
+    cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
 
     // Collect all metadata
     for (int i = 0; i < n_References; i++)
@@ -120,13 +143,20 @@ void VCFParsingInterpreter::ProcessMetaParsing()
     Reader.close();
 }
 
-void VCFParsingInterpreter::HigienicFactorPushBack(pair<unsigned int, unsigned int> factor)
+void VCFParsingInterpreter::HigienicFactorPushBack(pair<ll, ll> factor)
 {
+    if(((ull) factor.first + (ull) factor.second) > (ull) Reference_len)
+    {
+        cerr << "[DEBUG] Factor ilegal: " << factor.first << ", " << factor.second << endl;
+        return;
+    }
+
     if (factor.second > 0)
     {
-        factors.push_back(make_pair((unsigned int)factor.first, (unsigned int)factor.second));
+        factors.push_back(make_pair((ull)factor.first, (ull)factor.second));
         S_size += factor.second;
     }
+    
 }
 
 bool VCFParsingInterpreter::ChangeInSameIndvChromAlele(phrase ref, phrase curr)
@@ -157,45 +187,45 @@ bool VCFParsingInterpreter::ChangeInDiffIndv(phrase ref, phrase curr)
     return ref.indv() != curr.indv();
 }
 
-pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInitFactor(phrase Phrase)
+pair<ll, ll> VCFParsingInterpreter::CalculateAleleInitFactor(phrase Phrase)
 {
     // 0-index to 1-index
     rel_pos_chrom = dict_metareference[Phrase.chrom()].rel_pos() + 1;
     // cout << "1-rel_pos_chrom " << rel_pos_chrom << endl;
-    pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,     // Init position of current reference chromosome
+    pair<ll, ll> aux = make_pair(rel_pos_chrom,     // Init position of current reference chromosome
                                                     Phrase.pos());      // Copy until before the actual position
     // cout << "(" << aux.first << "," << aux.second << ") : init" << endl;
     return aux;
 }
 
-pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2)
+pair<ll, ll> VCFParsingInterpreter::CalculateAleleInterFactor(phrase Phrase1, phrase Phrase2)
 {
     // 0-index to 1-index
     rel_pos_chrom = dict_metareference[Phrase1.chrom()].rel_pos() + 1;
     // cout << "2-rel_pos_chrom " << rel_pos_chrom << endl;
-    pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase1.pos() + (Phrase1.len() - 1),          // Start after the discarded slice of Phrase1
+    pair<ll, ll> aux = make_pair(rel_pos_chrom + Phrase1.pos() + (Phrase1.len() - 1),          // Start after the discarded slice of Phrase1
                                         Phrase2.pos() - ((Phrase1.pos() + 1) + (Phrase1.len() - 1))); // Fill until reach before pos of Phrase2
     // cout << "(" << aux.first << "," << aux.second << ") : inter" << endl;
     return aux;
 }
 
-pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateAleleEndFactor(phrase Phrase)
+pair<ll, ll> VCFParsingInterpreter::CalculateAleleEndFactor(phrase Phrase)
 {
     // 0-index to 1-index
     rel_pos_chrom = dict_metareference[Phrase.chrom()].rel_pos() + 1;
     // cout << "3-rel_pos_chrom " << rel_pos_chrom << endl;
-    pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom + Phrase.pos() + (Phrase.len() - 1),  // Start after the discarded slice of Phrase
+    pair<ll, ll> aux = make_pair(rel_pos_chrom + Phrase.pos() + (Phrase.len() - 1),  // Start after the discarded slice of Phrase
                      dict_metareference[Phrase.chrom()].n_bases() - ((Phrase.pos() + 1) + (Phrase.len() - 1) + 1)); // Fill until reach the end of the current chromosome-alele
     // cout << "(" << aux.first << "," << aux.second << ") : end" << endl;
     return aux;
 }
 
-pair<unsigned int, unsigned int> VCFParsingInterpreter::CalculateFullAleleFactor(ll chromosome)
+pair<ll, ll> VCFParsingInterpreter::CalculateFullAleleFactor(ll chromosome)
 {
     // 0-index to 1-index
     rel_pos_chrom = dict_metareference[chromosome].rel_pos() + 1;
     // cout << "4-rel_pos_chrom " << rel_pos_chrom << endl;
-    pair<unsigned int, unsigned int> aux = make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
+    pair<ll, ll> aux = make_pair(rel_pos_chrom,                                 // Init position of current reference chromosome
                      dict_metareference[chromosome].n_bases()); // Fill until reach the end of the current chromosome-alele
     // cout << "(" << aux.first << "," << aux.second << ") : full" << endl;
     return aux;
@@ -208,7 +238,7 @@ void VCFParsingInterpreter::InduceFillFactors(phrase last_phrase, phrase curr_ph
     //  See https://www.biostars.org/p/59419/ , i dont have time for implement this handling or even understand it
     // TODO: Induce checkopoints over samples
 
-    pair<unsigned int, unsigned int> aux_factor;
+    pair<ll, ll> aux_factor;
     if (ChangeInSameIndvChromAlele(last_phrase, curr_phrase))
     {
         if (last_phrase.pos() == curr_phrase.pos()) return;
@@ -411,18 +441,15 @@ void VCFParsingInterpreter::InduceFillFactors(phrase last_phrase, phrase curr_ph
 
 void VCFParsingInterpreter::BuildReconstructionStructures()
 {
-    bit_vector b(S_size, 0);
-    // Turn on for all initial pos of each S_i
-    for (ll i = 0; i < S_i_pos.size(); i++)
-    {
-        b[S_i_pos[i]] = 1;
-    }
-
+    // Our max query for border case
     n_S_i = S_i_pos.size();
 
-    bit_vector_S_i = new sd_vector<>(b);
-    rank_S_i = new sd_vector<>::rank_1_type(bit_vector_S_i);
-    select_S_i = new sd_vector<>::select_1_type(bit_vector_S_i);
+    // For border case
+    S_i_pos.push_back(S_size + 1ULL);
+
+    bit_vector_S_i = sd_vector<>(S_i_pos.begin(), S_i_pos.end());
+    rank_S_i = sd_vector<>::rank_1_type(&bit_vector_S_i);
+    select_S_i = sd_vector<>::select_1_type(&bit_vector_S_i);
 }
 
 void VCFParsingInterpreter::BuildFactors()
@@ -451,6 +478,10 @@ void VCFParsingInterpreter::BuildFactors()
     {
         // Read the next phrase (Read the first actual phrase)
         Reader.read((char *)&curr_phrase, sizeof(phrase));
+
+        // cout << curr_phrase.indv() << "|" << curr_phrase.chrom() << "|" << curr_phrase.alele() << "|" << curr_phrase.pos() << "|" << curr_phrase.len() << endl;
+        // cin >> last_is_dummy;
+
         if (i == n_Phrases - 1)
         {
             curr_is_dummy = true;
@@ -462,7 +493,7 @@ void VCFParsingInterpreter::BuildFactors()
         if (!curr_is_dummy)
         {
             // Add actual edit inside current phrase
-            pair<unsigned int, unsigned int> aux = make_pair(curr_phrase.pos_e(), curr_phrase.len_e());
+            pair<ll, ll> aux = make_pair(curr_phrase.pos_e(), curr_phrase.len_e());
             // cout << "(" << aux.first << "," << aux.second << ") : actual" << endl;
             HigienicFactorPushBack(aux);
         }
@@ -481,36 +512,16 @@ void VCFParsingInterpreter::BuildFactors()
     BuildReconstructionStructures();
 }
 
-char* VCFParsingInterpreter::GetReference()
+vector<pair<sampleID, ll>> VCFParsingInterpreter::FindSnippet(string snippet, bool show)
 {
-    Reader.open(Destination_path + Reference_file_subpath, ios::in);
-
-    string reference_aux;
-    if (Reader.is_open())
-    {
-        getline(Reader, reference_aux);
-    }
-
-    Reader.clear();
-    Reader.close();
-
-    const char *reference_const = reference_aux.c_str();
-    char *reference = new char[Reference_len + 1];
-    strcpy(reference, reference_const);
-
-    return reference;
-}
-
-vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string snippet, bool show)
-{
-    vector<pair<sampleID, unsigned int>> result;
-    unsigned int n_chrom = (unsigned int) n_chromosomes;
-    unsigned int near_init, sample, chrom, alele, last_i, ini_s_i, next_s_i, aux_1, aux_2;
+    vector<pair<sampleID, ll>> result;
+    ll n_chrom = (ll) n_chromosomes;
+    ll near_init, sample, chrom, alele, last_i, ini_s_i, next_s_i, aux_1, aux_2, raw_pos;
     string sample_name;
 
-    vector<unsigned int> raw_positions;
+    vector<ull> raw_positions;
     // cout << 1 << endl;
-    Index->findTimes(snippet, raw_positions);
+    Index.findTimes(snippet, raw_positions);
     // cout << 2 << endl;
 
     if (raw_positions.empty())
@@ -532,15 +543,16 @@ vector<pair<sampleID, unsigned int>> VCFParsingInterpreter::FindSnippet(string s
     // TODO
     int max_query = n_S_i;
 
-    for(unsigned int raw_pos : raw_positions)
+    for(ull uraw_pos : raw_positions)
     {
+        raw_pos = (ll) uraw_pos;
         // cout << " Raw_pos: " << raw_pos << endl;
-        near_init = (*rank_S_i)(raw_pos);
+        near_init = rank_S_i(raw_pos);
         // Recuperamos posicion de inicio real
-        ini_s_i = (*select_S_i)(near_init);
+        ini_s_i = select_S_i(near_init);
         if(near_init < max_query)
         {
-            next_s_i = (*select_S_i)(near_init + 1);
+            next_s_i = select_S_i(near_init + 1);
         }
         else
         {
@@ -618,7 +630,7 @@ void VCFParsingInterpreter::SaveInterpreter()
     }
     // Save index
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
-    Index->save(Destination_aux);
+    Index.save(Destination_aux);
 
     // Save ID name data
     fstream  src(IDInfo_file_path, INPUT_BINARY_FILE);
@@ -629,30 +641,30 @@ void VCFParsingInterpreter::SaveInterpreter()
 
     // Save numeric data
     dst.open(Destination_aux + ".data", OUTPUT_BINARY_FILE);
-    dst.write((char*)&n_chromosomes, sizeof(int));
+    dst.write((char*)&n_chromosomes, sizeof(ll));
     dst.write((char*)&n_S_i, sizeof(ll));
     dst.write((char*)&S_size, sizeof(ll));
     dst.close();
 
     // Save sdsl structures
-    store_to_file((*bit_vector_S_i), Destination_aux + ".sdv");
+    store_to_file(bit_vector_S_i, Destination_aux + ".sdv");
 
     // Eliminar la carpeta Tmp
-    string command = "rm -r " + Destination_path + "Tmp/";
-    if(system(command.c_str()) == -1)
-    {
-        cerr << "[RLZ] Delete Error : Please try to delete manually the following folder to free space: " << Destination_path + "Tmp/" << endl;
-        cerr << "\t Error caused by: " << strerror(errno) << endl;
-    }
+    // string command = "rm -r " + Destination_path + "Tmp/";
+    // if(system(command.c_str()) == -1)
+    // {
+    //     cerr << "[RLZ] Delete Error : Please try to delete manually the following folder to free space: " << Destination_path + "Tmp/" << endl;
+    //     cerr << "\t Error caused by: " << strerror(errno) << endl;
+    // }
 }
 
 double VCFParsingInterpreter::GetSize()
 {
     double total_size = 0;
 
-    total_size += Index->getSize();
+    total_size += Index.getSize();
 
-    total_size += size_in_bytes(*bit_vector_S_i);
+    total_size += size_in_bytes(bit_vector_S_i);
 
     return total_size;
 }

@@ -9,7 +9,8 @@
 #include <iostream>
 #include <cstdint>
 
-typedef long long ll; // 4 bytes
+typedef long long ll;
+typedef unsigned long long ull;
 using namespace std;
 
 
