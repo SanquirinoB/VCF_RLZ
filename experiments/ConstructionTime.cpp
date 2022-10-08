@@ -91,9 +91,9 @@ int main(int argc, char **argv)
             size = Interpreter.GetSize();
             results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
             results_file.flush();
-            cout << "   BUILD Ended: " << endl;
-            cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
-            Interpreter.SaveInterpreter();
+            // cout << "   BUILD Ended: " << endl;
+            // cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            // Interpreter.SaveInterpreter();
             // delete Interpreter;
         }
         else

@@ -59,7 +59,11 @@ private:
     sd_vector<>::select_1_type select_S_i;
 
 public:
+
     VCFParsingInterpreter();
+
+    // ~VCFParsingInterpreter();
+
     vector<pair<sampleID, ll>> FindSnippet(string snippet, bool show = false);
     void InitializeFromParsing(char *destination_path);
     void InitializeFromParsing(string destination_path);

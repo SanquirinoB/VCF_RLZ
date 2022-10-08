@@ -10,6 +10,7 @@ using namespace sdsl;
 
 VCFParsingInterpreter::VCFParsingInterpreter()
 {
+
 }
 
 void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
@@ -62,14 +63,15 @@ void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
     cout << "[RLZ] Building factors from phrases" << endl;
     timer.reset();
     BuildFactors();
+    cout << "F = " << factors.size() << "S = " << S_size << endl;
     // for (pair<ll, ll> factor : factors)
     // {
     //     cout << "(" << factor.first << "," << factor.second << ")" << endl;
     // }
+    cout << "[RLZ]      Building factors builded in " << timer.getMilisec() << endl;
     cout << "[RLZ] Building Index" << endl;
     cout << "[RLZ]      Load reference from parsing" << endl;
     timer.reset();
-    TextFilter *filter = new TextFilterFull();
 
     fstream reader((Destination_path + Reference_file_subpath).c_str(), fstream::in);
 
@@ -86,18 +88,20 @@ void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
     // I add the \n character by hand (so the additional +1)
 	char *reference = new char[text_len + 1];
 
+    TextFilter *filter = new TextFilterFull();
     ull text_size = filter->readReferenceFull((Destination_path + Reference_file_subpath).c_str(), reference);
-    cout << "Me dio el mismo size del parsing? " << (text_len == Reference_len) << endl;
-    cout << "Me dio el mismo size entre lecturas? " << (text_len == text_size) << endl;
+    delete filter;
+    // cout << "Me dio el mismo size del parsing? " << (text_len == Reference_len) << endl;
+    // cout << "Me dio el mismo size entre lecturas? " << (text_len == text_size) << endl;
     //ReferenceIndex *reference = new ReferenceIndexBasic(text, 4);
 
     //const char *reference_ = reference->getText();
     //char * emulated_text = (char *)reference_;
     cout << "[RLZ]      Create index" << endl;
     Index = new RelzIndexReference(factors, reference, (ull) S_size, reference, text_size);
-    cout << "[DEBUG] Compacted len VCF: " << Index->RefLen() << endl;
+    // cout << "[DEBUG] Compacted len VCF: " << Index->RefLen() << endl;
     delete reference;
-    cout << "[DEBUG] Compacted len after delete: " << Index->RefLen() << endl;
+    // cout << "[DEBUG] Compacted len after delete: " << Index->RefLen() << endl;
 
     cout << "[RLZ]      Index finished in " << timer.getMilisec() << " ms" << endl;
 }
@@ -115,7 +119,7 @@ void VCFParsingInterpreter::ProcessReference()
     Reference_len = metareference_buffer.n_bases();
     int n_References = metareference_buffer.rel_pos();
 
-    cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
+    // cout << "Largo: " << Reference_len << "|Referencias: " << n_References << endl;
 
     // Collect all metadata
     for (int i = 0; i < n_References; i++)
@@ -152,7 +156,7 @@ void VCFParsingInterpreter::HigienicFactorPushBack(pair<ll, ll> factor)
     {
         factors.push_back(make_pair((ull)factor.first, (ull)factor.second));
         S_size += factor.second;
-        cout << "(" << factor.first << "," << factor.second << ")" << endl;
+        // cout << "(" << factor.first << "," << factor.second << ")" << endl;
     }
 }
 
@@ -458,9 +462,7 @@ void VCFParsingInterpreter::BuildFactors()
     n_S_i = 0;
     // Helpers
     ref_offset = 0;
-    ll factor_pos = 0, factor_len = 0;
     bool last_is_dummy = true, curr_is_dummy = false;
-    bool is_debug = true;
 
     // Open phrases file
     Reader.open(Destination_path + Phrases_file_subpath, INPUT_BINARY_FILE);
@@ -500,8 +502,6 @@ void VCFParsingInterpreter::BuildFactors()
 
     Reader.clear();
     Reader.close();
-
-    int actual_indv = 0, actual_chrom = 0, actual_alele = 0;
 
     BuildReconstructionStructures();
 }
@@ -556,7 +556,7 @@ vector<pair<sampleID, ll>> VCFParsingInterpreter::FindSnippet(string snippet, bo
         // cout << near_init << "," << ini_s_i << "," << raw_pos << "," << snippet.size() << "," << next_s_i << endl;
 
         // Si mi snippet no esta completamente dentro de mi seccion, entonces se descarta
-        if (raw_pos + snippet.size() - 1 > next_s_i)
+        if (raw_pos + (ll)(snippet.size() - 1) > next_s_i)
         {
             // It means a pattern between S_i
             // cout << "   Discarded! " << next_s_i << endl;
@@ -617,7 +617,7 @@ void VCFParsingInterpreter::SaveInterpreter()
     // string current_time(buffer);
     // string Destination_folder_name = Destination_path + "VCF_RLZ_" + current_time;
     string Destination_folder_name = Destination_path + "VCF_RLZ/";
-    cout << "[DEBUG] Compacted before save 1 VCF: " << Index->RefLen() << endl;
+    // cout << "[DEBUG] Compacted before save 1 VCF: " << Index->RefLen() << endl;
 
     if(mkdir(Destination_folder_name.c_str(), 0777) == -1)
     {
@@ -628,7 +628,7 @@ void VCFParsingInterpreter::SaveInterpreter()
     string Destination_aux = Destination_folder_name + "vcf-rlz-index";
     Index->save(Destination_aux);
 
-    cout << "[DEBUG] Compacted after save 1 VCF: " << Index->RefLen() << endl;
+    // cout << "[DEBUG] Compacted after save 1 VCF: " << Index->RefLen() << endl;
 
 
     // Save ID name data
