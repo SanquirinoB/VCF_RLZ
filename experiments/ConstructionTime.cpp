@@ -88,13 +88,11 @@ int main(int argc, char **argv)
             Interpreter.InitializeFromParsing(destPath);
 
             timeElapsed = timer.getMilisec();
-            size = Interpreter.GetSize();
             results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
             results_file.flush();
-            // cout << "   BUILD Ended: " << endl;
-            // cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
-            // Interpreter.SaveInterpreter();
-            // delete Interpreter;
+            cout << "   BUILD Ended: " << endl;
+            cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            Interpreter.SaveInterpreter();
         }
         else
         {
