@@ -604,6 +604,94 @@ vector<pair<sampleID, ll>> VCFParsingInterpreter::FindSnippet(string snippet, bo
     return result;
 }
 
+ll VCFParsingInterpreter::FindSnippetExperimental(string snippet, bool show)
+{
+    vector<pair<sampleID, ll>> result;
+    ll n_chrom = (ll) n_chromosomes;
+    ll near_init, sample, chrom, alele, last_i, ini_s_i, next_s_i, aux_1, aux_2, raw_pos;
+    string sample_name;
+
+    ll ans = 0;
+    vector<ull> raw_positions;
+    // cout << 1 << endl;
+    Index->findTimes(snippet, raw_positions);
+    // cout << 2 << endl;
+
+    if (raw_positions.empty())
+    {
+        return 0;
+    }
+
+    Reader.open(IDInfo_file_path);
+
+    sort(raw_positions.begin(), raw_positions.end());
+
+    // Initialize ID
+    last_i = 1;
+    getline(Reader, sample_name);
+    // cout << "Sample: " << sample_name << endl;
+
+    // TODO
+    int max_query = n_S_i;
+
+    for(ull uraw_pos : raw_positions)
+    {
+        raw_pos = (ll) uraw_pos;
+        // cout << " Raw_pos: " << raw_pos << endl;
+        near_init = rank_S_i(raw_pos);
+        // Recuperamos posicion de inicio real
+        ini_s_i = select_S_i(near_init);
+        if(near_init < max_query)
+        {
+            next_s_i = select_S_i(near_init + 1);
+        }
+        else
+        {
+            next_s_i = S_size;
+        }
+
+        // cout << near_init << "," << ini_s_i << "," << raw_pos << "," << snippet.size() << "," << next_s_i << endl;
+
+        // Si mi snippet no esta completamente dentro de mi seccion, entonces se descarta
+        if (raw_pos + (ll)(snippet.size() - 1) > next_s_i)
+        {
+            // It means a pattern between S_i
+            // cout << "   Discarded! " << next_s_i << endl;
+            continue;
+        }
+        ans++;
+        // Cuantos Indv lleno hasta este punto?
+        aux_1 = near_init / (n_chrom * ploidy);
+        // Si lleno justo, entonces me quedo en aux, sino paso al sgte
+        sample = aux_1 * (n_chrom * ploidy) < near_init ? aux_1 + 1 : aux_1;
+
+        // Update sample name if required
+        if(sample != last_i)
+        {
+            getline(Reader, sample_name);
+            last_i = sample;
+        }
+
+        // De lo que me sobro dentro de este sample
+        aux_1 = near_init - aux_1 * (n_chrom * ploidy);
+        // Arreglo en caso de llenar justo, equivale a ultima seccion
+        aux_1 = aux_1 == 0? (n_chrom * ploidy) : aux_1;
+        // De lo que sobra, que cromosoma llena
+        aux_2 = aux_1 / ploidy;
+        chrom = aux_2 * ploidy < aux_1 ? aux_2 + 1 : aux_2;
+        // Recuperamos lo que sobra dentro
+        aux_2 = aux_1 - aux_2 * ploidy;
+        // Arreglamos
+        alele = aux_2 == 0? ploidy : aux_2;
+
+        result.push_back(make_pair(sampleID(sample_name, chrom, alele), raw_pos - ini_s_i));
+    }
+
+    Reader.close();
+
+    return ans;
+}
+
 void VCFParsingInterpreter::SaveInterpreter()
 {
     // time_t rawtime;
