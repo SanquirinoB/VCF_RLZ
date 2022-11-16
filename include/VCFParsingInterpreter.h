@@ -53,7 +53,6 @@ private:
     ll rel_pos_chrom;
 
     // Reconstruction structures
-    RelzIndexReference *Index;
     sd_vector<> bit_vector_S_i;
     sd_vector<>::rank_1_type rank_S_i;
     sd_vector<>::select_1_type select_S_i;
@@ -63,7 +62,7 @@ public:
     VCFParsingInterpreter();
 
     // ~VCFParsingInterpreter();
-
+    RelzIndexReference *Index;
     vector<pair<sampleID, ll>> FindSnippet(string snippet, bool show = false);
     ll FindSnippetExperimental(string snippet, bool show = false);
     void InitializeFromParsing(char *destination_path);

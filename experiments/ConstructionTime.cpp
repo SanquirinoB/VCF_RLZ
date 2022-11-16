@@ -52,10 +52,10 @@ int main(int argc, char **argv)
             }
             timeElapsed = timer.getMilisec();
 
-            results_file << destPath << "\t" << "PARSE" << "\t" << timeElapsed << "\t" << "?" << "\n";
+            results_file << destPath << "\t" << "PARSE" << "\t" << timeElapsed << " (ms)"  << "\n";
             results_file.flush();
             cout << "   PARSE Ended: " << endl;
-            cout << destPath << "\t" << "PARSE" << "\t" << timeElapsed << "\t" << "?" << "\n";
+            cout << destPath << "\t" << "PARSE" << "\t" << timeElapsed << " (ms)"  << "\n";
         }
         else
         {
@@ -69,10 +69,10 @@ int main(int argc, char **argv)
             VCFParsingSorter* Sorter = new VCFParsingSorter();
             Sorter->StartProcess(destPath);
             timeElapsed = timer.getMilisec();
-            results_file << destPath << "\t" << "SORT" << "\t" << timeElapsed << "\t" << "?" << "\n";
+            results_file << destPath << "\t" << "SORT" << "\t" << timeElapsed << " (ms)"  << "\n";
             results_file.flush();
             cout << "   SORT Ended: " << endl;
-            cout << destPath << "\t" << "SORT" << "\t" << timeElapsed << "\t" << "?" << "\n";
+            cout << destPath << "\t" << "SORT" << "\t" << timeElapsed << " (ms)"  << "\n";
             delete Sorter;
         }
         else
@@ -88,10 +88,10 @@ int main(int argc, char **argv)
             Interpreter.InitializeFromParsing(destPath);
 
             timeElapsed = timer.getMilisec();
-            results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            results_file << destPath << "\t" << "BUILD" << "\t" << timeElapsed << " (ms)"  << "\n";
             results_file.flush();
             cout << "   BUILD Ended: " << endl;
-            cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << "\t" << size << "\n";
+            cout << destPath << "\t" << "BUILD" << "\t" << timeElapsed << " (ms)"  << "\n";
             Interpreter.SaveInterpreter();
         }
         else

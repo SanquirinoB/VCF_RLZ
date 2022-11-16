@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     VCFParsingInterpreter* Interpreter = new VCFParsingInterpreter();
 
     Interpreter->InitializeFromPreloadedFile(argv[1]);
-    
+    // cout << "Interpreter of size " << Interpreter->GetSize() / (1024 * 1024) << " MB" << endl; 
     string response;
     while(response != "2")
     {

@@ -73,9 +73,12 @@ int main(int argc, char **argv)
 
     cout << "[RLZ] Sorting process finished!" << endl;
 
+    cout << "[RLZ] Start indexing process..." << endl;
     VCFParsingInterpreter* Interpreter = new VCFParsingInterpreter();
 
     Interpreter->InitializeFromParsing(argv[1]);
+
+    cout << "[RLZ] Indexing ended!" << endl;
     
     string response;
     while(response != "2")

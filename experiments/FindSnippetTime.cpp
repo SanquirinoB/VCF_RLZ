@@ -32,28 +32,59 @@ int main(int argc, char **argv)
     VCFParsingInterpreter* Interpreter = new VCFParsingInterpreter();
 
     Interpreter->InitializeFromPreloadedFile(argv[2]);
+
+    cout << "Structure size: " << Interpreter->GetSize()/ (1024 * 1024) << " (MB)" << endl;
+
+    Interpreter->Index->querytime_p1 = 0;
+	Interpreter->Index->querytime_p2 = 0;
+	Interpreter->Index->querytime_p3 = 0;
+	Interpreter->Index->querytime_p4 = 0;
+	Interpreter->Index->occs_a = 0;
+	Interpreter->Index->occs_b = 0;
+	Interpreter->Index->occs_c = 0;
     NanoTimer timer;
+    double q_p1 = 0, q_p2 = 0, q_p3 = 0, q_p4 = 0;
     string aux;
-    ll occ = 0;
+    ll occ = 0, occ_a = 0, occ_b = 0, occ_c = 0;
 
     ifstream patterns_file(argv[1]);
 
     cout << "Init pattern search of: " << argv[1] << endl;
 
-    timer.reset();
 
     while(getline(patterns_file, aux))
     {
         occ += Interpreter->FindSnippetExperimental(aux);
+        // Recover values
+        q_p1 += Interpreter->Index->querytime_p1;
+        q_p2 += Interpreter->Index->querytime_p2;
+        q_p3 += Interpreter->Index->querytime_p3;
+        q_p4 += Interpreter->Index->querytime_p4;
+        occ_a += Interpreter->Index->occs_a;
+        occ_b += Interpreter->Index->occs_b;
+        occ_c += Interpreter->Index->occs_c;
+
+        Interpreter->Index->querytime_p1 = 0;
+        Interpreter->Index->querytime_p2 = 0;
+        Interpreter->Index->querytime_p3 = 0;
+        Interpreter->Index->querytime_p4 = 0;
+        Interpreter->Index->occs_a = 0;
+        Interpreter->Index->occs_b = 0;
+        Interpreter->Index->occs_c = 0;
+
     }
 
-    double timeElapsed = timer.getMilisec();
 
     if(occ != 0)
     {
-        cout << timeElapsed << " (ms)" << endl;
-        cout << occ << " (occurences)" << endl;
-        cout << (timeElapsed / occ) << " (real elapsed (ms))" << endl;
+        cout << "[TT] " << q_p4 << endl;
+        cout << "[T1] " << q_p1 << endl;
+        cout << "[T2] " << q_p2 << endl;
+        cout << "[T3] " << q_p3 << endl;
+        cout << "[OT] " << occ << endl;
+        cout << "[O1] " << occ_a << endl;
+        cout << "[O2] " << occ_b << endl;
+        cout << "[O3] " << occ_c << endl;
     }
 
     cout << "   Finished pattern search of: " << argv[1] << endl;

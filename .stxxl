@@ -1,2 +1,2 @@
 # file path,maximum capacity of the disk,access method
-disk=/tmp/stxxl,1G,syscall unlink
+disk=/d2/fernanda/stxxl,370GB,syscall unlink

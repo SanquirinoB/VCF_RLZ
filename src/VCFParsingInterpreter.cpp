@@ -22,7 +22,7 @@ void VCFParsingInterpreter::InitializeFromPreloadedFile(char *folder_path)
     Index->load(Destination_aux);
 
     // Recover ID name data
-    IDInfo_file_path = Destination_folder_name + ".idinfo";
+    IDInfo_file_path = Destination_aux + ".idinfo";
 
     // Recover numeric data
     fstream src(Destination_aux + ".data", INPUT_BINARY_FILE);
@@ -63,7 +63,7 @@ void VCFParsingInterpreter::InitializeFromParsing(string destination_path)
     cout << "[RLZ] Building factors from phrases" << endl;
     timer.reset();
     BuildFactors();
-    cout << "F = " << factors.size() << "S = " << S_size << endl;
+    // cout << "F = " << factors.size() << "S = " << S_size << endl;
     // for (pair<ll, ll> factor : factors)
     // {
     //     cout << "(" << factor.first << "," << factor.second << ")" << endl;

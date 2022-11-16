@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include "VCFParsingSorter.h"
+#include "NanoTimer.h"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ void VCFParsingSorter::StartProcess(char **argv)
 void VCFParsingSorter::StartProcess(string path_raw)
 {
     // INICIO PROCESO DE SORTING
-    // NanoTimer timer;
+    NanoTimer timer;
     ifstream meta_info_file;
     metainfo info;
     phrase p1;
@@ -62,10 +63,10 @@ void VCFParsingSorter::StartProcess(string path_raw)
     // }
 
     STXXL_MSG("Sorting...");
-    // timer.reset()
+    timer.reset();
     stxxl::sort(v.begin(), v.end(), Cmp(), memory_to_use);
-    // cout << "[RLZ]\tSort sucessfull! Time elpased: " << timer.getMilisec() << "ms" << endl;
-    cout << "[RLZ]\tSort sucessfull! Time elpased" << endl;
+    cout << "[RLZ]\tSort sucessfull! Time elpased: " << timer.getMilisec() << "ms" << endl;
+    // cout << "[RLZ]\tSort sucessfull! Time elpased "<< timer.getMilisec << endl;
 
     STXXL_MSG("Checking order...");
     STXXL_MSG((stxxl::is_sorted(v.begin(), v.end()) ? "\tOK" : "\tWRONG"));
