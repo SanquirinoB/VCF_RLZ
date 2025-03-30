@@ -42,10 +42,22 @@ I'll provide a new release which support a single chromosome instead of a collec
 
 Any way you can use PARSE, SORT and partially BUILD for everything you want, the conversion of VCF into its Lempel-Ziv factorization is really useful for  another structures construction
 
+### Setup worskpace
+
+1. Clone the project including submodules with "git clone --recurse-submodules <REPO_LINK>¨
+2. Follow [setup steps for stxxl](http://stxxl.org/tags/1.3.1/installation_linux_gcc.html)
+3. Inside the repo folder:
+```console
+foo@bar:~/VCF_RLZ$ mkdir build
+foo@bar:~/VCF_RLZ$ cd build
+foo@bar:~/VCF_RLZ$ make
+```
+4. Now you can use fullbuild and prebuild executables.
+   
 ### Build Index
 
 ```console
-foo@bar:~$./build/fullbuild <DEST_PATH> <FASTA_PATH> -n <N_CHR> <VCF_PATH> ...
+foo@bar:~/VCF_RLZ$./build/fullbuild <DEST_PATH> <FASTA_PATH> -n <N_CHR> <VCF_PATH> ...
 ```
 
 #### Parameters
@@ -55,8 +67,21 @@ foo@bar:~$./build/fullbuild <DEST_PATH> <FASTA_PATH> -n <N_CHR> <VCF_PATH> ...
 4. <VCF_PATH>: Path to VCF files, must match with the N_CHR provided.
 
 #### Output
-Inside DEST_PATH youĺl finde the binary files that represent the genomic collection provided. These files can be used later to search.
+Inside DEST_PATH youĺl finde the binary files that represent the genomic collection provided. These files can be used later to search. The executable also provides the option to search for snippets.
+
+### Load Pre-Built Index
+
+```console
+foo@bar:~/VCF_RLZ$./build/prebuild <INDEX_PATH>
+```
+
+#### Parameters
+1. <INDEX_PATH>: Index binaries' path. Must be the same path you provided for fullbuild.
+
+#### Output
+Once it loads the index, you can query for snippets.
 
 ## To Do
-- Only support for autosomal chromosomes. Theorically X and Y have a different interpretation in VCF, open for assistance.
-- Support to select a single chromosome instead of digest the full collection.
+- For this review, Iḿ facing a segmentation fault when fullbuild tries to write on the destination path. To debug this, I suggest to change in the CMake to compile on Debug mode and use GDB.
+- Support for autosomal chromosomes only. Theorically X and Y have a different interpretation in VCF, open for assistance.
+- Support to select a single chromosome instead of digesting the full collection, for debug purposes. Now, in order to evaluate a single chromosome, make sure your reference files only contains that chromosome.
