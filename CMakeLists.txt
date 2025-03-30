@@ -45,7 +45,6 @@ add_executable(fullbuild GenerateFromVCFFiles.cpp)
 add_executable(prebuild GenerateFromPreloadedFile.cpp)
 add_executable(timeC "${PROJECT_SOURCE_DIR}/experiments/ConstructionTime.cpp")
 add_executable(timeF "${PROJECT_SOURCE_DIR}/experiments/FindSnippetTime.cpp")
-add_executable(test main.cpp)
 
 #target_include_directories(process PUBLIC ${STXXL_INCLUDE_DIRS} ${VCF_RLZ_INCLUDE_DIRS})
 target_link_libraries(vcf_rlz stxxl sdsl divsufsort divsufsort64 RLZ)
